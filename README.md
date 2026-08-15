@@ -5,7 +5,13 @@ Site público em Next.js 16 com uma fundação Supabase versionada. A home conso
 
 O fluxo de leitura é `Supabase → repositories → queries → adapters → modelos de domínio → page.tsx → componentes`. A agregação `getPublicSiteDataWithFallback()` aplica fallback local por recurso, diferencia respostas vazias de falhas e informa a origem de cada conjunto de dados. Os modelos remotos usam o UUID do banco em `id` e preservam `slug` como identidade estável de domínio; a sacola aceita tanto UUIDs remotos quanto IDs locais estáveis.
 
-A rota `/` usa ISR com revalidação de 60 segundos. Em produção, uma alteração editorial aparece após a primeira visita posterior ao intervalo de revalidação; enquanto a atualização é calculada, o Next pode servir a versão anterior. A leitura pública usa somente a Publishable Key e as policies RLS. No futuro, o painel poderá invalidar a rota imediatamente com `revalidatePath("/")` após uma gravação bem-sucedida.
+A rota `/` usa ISR com revalidação de 60 segundos. Em produção, uma alteração editorial aparece após a primeira visita posterior ao intervalo de revalidação; enquanto a atualização é calculada, o Next pode servir a versão anterior. A leitura pública usa somente a Publishable Key e as policies RLS. O painel invalida a rota imediatamente com `revalidatePath("/")` após uma gravação editorial bem-sucedida.
+
+O painel permite editar o registro único de empresa em `/admin/settings` e gerenciar categorias em `/admin/categories`. Todas as mutações usam Server Actions, repetem a autorização de administrador, validam e limitam os campos aceitos, gravam com a sessão SSR sujeita a RLS e retornam apenas feedback seguro.
+
+Telefone e WhatsApp são editados no formato legível brasileiro com DDD. No servidor, a pontuação é removida; `phone_raw` preserva DDD + número e `whatsapp_raw` usa `55` + DDD + número, aceitando entrada com ou sem `+55` sem duplicá-lo. Horários são editados por dia, como aberto/fechado e intervalo, e persistidos em JSONB como `HH:mm-HH:mm` ou `closed`; JSON cru nunca é aceito pelo formulário.
+
+Os arquivos locais continuam sendo fallback técnico e não são alterados pelo painel. Se o Supabase estiver indisponível, o site público poderá exibir conteúdo local anterior às alterações administrativas.
 
 ## Desenvolvimento local
 
