@@ -52,4 +52,6 @@ values ('UUID_DO_AUTH_USER', 'Nome do administrador', 'admin');
 
 Não use uma chave `service_role` no navegador nem a adicione ao repositório. O bucket público `site-assets` aceita somente imagens JPEG, PNG, WebP ou AVIF de até 5 MiB; escritas ficam limitadas a administradores e aos diretórios `products/`, `services/` e `gallery/`. O futuro painel também deverá validar MIME, extensão e nomes seguros antes do upload.
 
+O usuário criado manualmente deve estar com o e-mail confirmado antes do primeiro login. O painel não oferece cadastro, confirmação de e-mail nem recuperação de senha. A autenticação administrativa usa uma Server Action, cookies gerenciados por `@supabase/ssr` e refresh em `proxy.ts`; a autorização final sempre ocorre no servidor consultando `profiles.role = 'admin'` com a sessão do próprio usuário e respeitando RLS.
+
 Na migração futura da home, mantenha o `slug` como identidade estável de domínio (os slugs de produtos preservam os IDs locais atuais) e use o UUID apenas como chave do banco.
