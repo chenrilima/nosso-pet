@@ -9,8 +9,8 @@ const items = [
   { label: "Produtos", icon: Package, href: "/admin/products", enabled: true },
   { label: "Categorias", icon: Tags, href: "/admin/categories", enabled: true },
   { label: "Serviços", icon: Scissors, href: "/admin/services", enabled: true },
-  { label: "Galeria", icon: Images },
-  { label: "FAQ", icon: CircleHelp },
+  { label: "Galeria", icon: Images, href: "/admin/gallery", enabled: true },
+  { label: "FAQ", icon: CircleHelp, href: "/admin/faqs", enabled: true },
   { label: "Empresa", icon: Building2, href: "/admin/settings", enabled: true },
 ];
 

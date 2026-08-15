@@ -1,0 +1,15 @@
+"use server";
+/* eslint-disable @typescript-eslint/no-unused-vars -- action-state signatures require the previous state */
+import { revalidatePath } from "next/cache";
+import { createFaq, deleteFaq, getAdminFaq, toggleFaqPublished, updateFaq } from "@/data/repositories/faqs.repository";
+import { requireAdmin } from "@/features/admin/auth/server";
+import type { AdminActionResult } from "@/features/admin/mutations/types";
+import { createClient } from "@/lib/supabase/server";
+import { UUID_PATTERN } from "@/features/admin/products/validation";
+import { validateFaq } from "./validation";
+const refresh = () => { revalidatePath("/"); revalidatePath("/admin"); revalidatePath("/admin/faqs"); };
+const failure = (error: unknown): AdminActionResult => { console.error("Falha em mutação de FAQ.", error instanceof Error ? { name: error.name } : undefined); return { ok: false, message: "Não foi possível salvar a FAQ. Tente novamente." }; };
+export async function createFaqAction(_previous: AdminActionResult, data: FormData): Promise<AdminActionResult> { await requireAdmin(); const validation = validateFaq(data); if (!validation.values) return { ok: false, message: "Revise os campos destacados.", fieldErrors: validation.fieldErrors }; try { await createFaq(await createClient(), validation.values); refresh(); return { ok: true, message: "FAQ criada com sucesso." }; } catch (error) { return failure(error); } }
+export async function updateFaqAction(id: string, _previous: AdminActionResult, data: FormData): Promise<AdminActionResult> { await requireAdmin(); if (!UUID_PATTERN.test(id)) return { ok: false, message: "FAQ inválida." }; const validation = validateFaq(data); if (!validation.values) return { ok: false, message: "Revise os campos destacados.", fieldErrors: validation.fieldErrors }; const client = await createClient(); try { if (!await getAdminFaq(client, id)) return { ok: false, message: "FAQ não encontrada." }; await updateFaq(client, id, validation.values); refresh(); return { ok: true, message: "FAQ atualizada com sucesso." }; } catch (error) { return failure(error); } }
+export async function toggleFaqAction(id: string, published: boolean, _previous: AdminActionResult): Promise<AdminActionResult> { await requireAdmin(); if (!UUID_PATTERN.test(id)) return { ok: false, message: "FAQ inválida." }; const client = await createClient(); try { if (!await getAdminFaq(client, id)) return { ok: false, message: "FAQ não encontrada." }; await toggleFaqPublished(client, id, published); refresh(); return { ok: true, message: published ? "FAQ publicada." : "FAQ despublicada." }; } catch (error) { return failure(error); } }
+export async function deleteFaqAction(id: string, _previous: AdminActionResult): Promise<AdminActionResult> { await requireAdmin(); if (!UUID_PATTERN.test(id)) return { ok: false, message: "FAQ inválida." }; const client = await createClient(); try { if (!await getAdminFaq(client, id)) return { ok: false, message: "FAQ não encontrada." }; await deleteFaq(client, id); refresh(); return { ok: true, message: "FAQ excluída permanentemente." }; } catch (error) { return failure(error); } }
