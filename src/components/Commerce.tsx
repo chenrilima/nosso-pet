@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { Car, Minus, Plus, Send, ShoppingBag, Trash2 } from "lucide-react";
 import { cartMessage, taxiMessage, whatsappUrl } from "@/lib/whatsapp";
+import { formatCurrencyBRL } from "@/lib/pricing";
 import type { Product } from "@/types/domain";
 
 export function TaxiPet({ whatsappRaw }: { whatsappRaw: string }) {
@@ -174,6 +175,11 @@ export function Products({
                 <p className="mt-2 flex-1 text-sm text-gray-500">
                   {p.description}
                 </p>
+                {p.price !== null && (
+                  <p className="mt-3 text-lg font-black text-olive">
+                    {formatCurrencyBRL(p.price)}
+                  </p>
+                )}
                 <button
                   onClick={() => add(p)}
                   className="btn btn-secondary mt-5 text-sm"

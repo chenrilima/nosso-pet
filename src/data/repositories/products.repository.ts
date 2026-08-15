@@ -27,6 +27,10 @@ export async function updateProduct(client: DatabaseClient, id: string, values: 
   const { error } = await client.from("products").update(values as unknown as Database["public"]["Tables"]["products"]["Update"]).eq("id", id);
   if (error) throw repositoryWriteError("products", error);
 }
+export async function updateProductImagePath(client: DatabaseClient, id: string, imagePath: string | null): Promise<void> {
+  const { error } = await client.from("products").update({ image_path: imagePath }).eq("id", id);
+  if (error) throw repositoryWriteError("products", error);
+}
 export async function toggleProduct(client: DatabaseClient, id: string, isActive: boolean): Promise<void> {
   const { error } = await client.from("products").update({ is_active: isActive }).eq("id", id);
   if (error) throw repositoryWriteError("products", error);

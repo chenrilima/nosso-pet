@@ -19,6 +19,7 @@ import { fallbackBusiness } from "@/data/fallbacks/public-site.fallback";
 import { getPublicSiteDataWithFallback } from "@/data/queries/public-site.query";
 import { galleryForPresentation } from "@/lib/gallery-presentation";
 import { presentBusinessHours } from "@/lib/business-hours";
+import { presentServicePrice } from "@/lib/pricing";
 import { resolveServiceIcon } from "@/lib/service-icons";
 import { whatsappUrl } from "@/lib/whatsapp";
 
@@ -101,6 +102,7 @@ export default async function Home() {
             <div className="mt-11 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {data.services.map((service) => {
                 const Icon = resolveServiceIcon(service.iconKey);
+                const price = presentServicePrice(service);
                 return (
                 <article
                   key={service.id}
@@ -113,6 +115,9 @@ export default async function Home() {
                   <p className="mt-2 text-sm leading-6 text-gray-500">
                     {service.description}
                   </p>
+                  {price && (
+                    <p className="mt-4 font-black text-olive">{price}</p>
+                  )}
                 </article>
                 );
               })}

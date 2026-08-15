@@ -2,12 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { listAdminCategories } from "@/data/repositories/categories.repository";
-import { createProduct, deleteProduct, getAdminProduct, toggleProduct, updateProduct } from "@/data/repositories/products.repository";
+import { createProduct, deleteProduct, getAdminProduct, toggleProduct, updateProduct, updateProductImagePath } from "@/data/repositories/products.repository";
 import { RepositoryError } from "@/data/repositories/shared";
 import { requireAdmin } from "@/features/admin/auth/server";
 import type { AdminActionResult } from "@/features/admin/mutations/types";
 import { createClient } from "@/lib/supabase/server";
 import { UUID_PATTERN, validateProduct } from "./validation";
+import { PRODUCT_PATH_PATTERN, removeProductImageFile, verifyProductUpload } from "@/lib/storage/admin-site-assets";
 
 const refresh = () => { revalidatePath("/"); revalidatePath("/admin/products"); revalidatePath("/admin"); };
 function failure(error: unknown): AdminActionResult {
@@ -46,5 +47,33 @@ export async function deleteProductAction(id: string, _previous: AdminActionResu
   await requireAdmin();
   if (!UUID_PATTERN.test(id)) return { ok: false, message: "Produto inválido." };
   const client = await createClient();
-  try { if (!(await getAdminProduct(client, id))) return { ok: false, message: "Produto não encontrado." }; await deleteProduct(client, id); refresh(); return { ok: true, message: "Produto excluído permanentemente." }; } catch (error) { return failure(error); }
+  try { const current = await getAdminProduct(client, id); if (!current) return { ok: false, message: "Produto não encontrado." }; await deleteProduct(client, id); if (current.image_path) try { await removeProductImageFile(client, current.image_path); } catch (error) { console.error("Arquivo órfão de produto requer limpeza.", { name: error instanceof Error ? error.name : "unknown" }); } refresh(); return { ok: true, message: "Produto excluído permanentemente." }; } catch (error) { return failure(error); }
+}
+
+async function cleanupNewProductFile(client: Awaited<ReturnType<typeof createClient>>, path: string) { try { await removeProductImageFile(client, path); } catch (error) { console.error("Arquivo novo de produto requer limpeza.", { name: error instanceof Error ? error.name : "unknown" }); } }
+export async function replaceProductImageAction(id: string, newPath: string): Promise<AdminActionResult> {
+  await requireAdmin();
+  if (!UUID_PATTERN.test(id) || !PRODUCT_PATH_PATTERN.test(newPath)) return { ok: false, message: "Imagem de produto inválida." };
+  const client = await createClient();
+  try {
+    const current = await getAdminProduct(client, id);
+    if (!current) { await cleanupNewProductFile(client, newPath); return { ok: false, message: "Produto não encontrado." }; }
+    await verifyProductUpload(client, newPath);
+    try { await updateProductImagePath(client, id, newPath); } catch (error) { await cleanupNewProductFile(client, newPath); throw error; }
+    if (current.image_path) try { await removeProductImageFile(client, current.image_path); } catch (error) { console.error("Arquivo antigo de produto requer limpeza.", { name: error instanceof Error ? error.name : "unknown" }); }
+    refresh(); return { ok: true, message: "Imagem do produto atualizada." };
+  } catch (error) { return failure(error); }
+}
+export async function removeProductImageAction(id: string): Promise<AdminActionResult> {
+  await requireAdmin();
+  if (!UUID_PATTERN.test(id)) return { ok: false, message: "Produto inválido." };
+  const client = await createClient();
+  try {
+    const current = await getAdminProduct(client, id);
+    if (!current) return { ok: false, message: "Produto não encontrado." };
+    if (!current.image_path) return { ok: true, message: "O produto já está sem imagem." };
+    await updateProductImagePath(client, id, null);
+    try { await removeProductImageFile(client, current.image_path); } catch (error) { console.error("Arquivo órfão de produto requer limpeza.", { name: error instanceof Error ? error.name : "unknown" }); }
+    refresh(); return { ok: true, message: "Imagem removida; o card voltou ao placeholder." };
+  } catch (error) { return failure(error); }
 }
