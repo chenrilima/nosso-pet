@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import { Check, ChevronLeft, ChevronRight, Send } from "lucide-react";
-import { serviceOptions } from "@/data/services";
 import { bookingMessage, Booking as B, whatsappUrl } from "@/lib/whatsapp";
+import type { Service } from "@/types/domain";
 const initial: B = {
   services: [],
   name: "",
@@ -15,7 +15,18 @@ const initial: B = {
   date: "",
   period: "Manhã",
 };
-export function Booking() {
+export const bookingOptions = (services: Service[]) => [
+  ...services.map((service) => service.name),
+  "Outro",
+];
+
+export function Booking({
+  services,
+  whatsappRaw,
+}: {
+  services: Service[];
+  whatsappRaw: string;
+}) {
   const [step, setStep] = useState(1);
   const [b, setB] = useState(initial);
   const set = (k: keyof B, v: string | string[]) =>
@@ -57,7 +68,7 @@ export function Booking() {
                   Você pode escolher mais de uma opção.
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {serviceOptions.map((s) => (
+                  {bookingOptions(services).map((s) => (
                     <button
                       key={s}
                       onClick={() =>
@@ -241,7 +252,7 @@ export function Booking() {
                 <a
                   className="btn btn-primary mt-6 w-full"
                   target="_blank"
-                  href={whatsappUrl(bookingMessage(b))}
+                  href={whatsappUrl(bookingMessage(b), whatsappRaw)}
                 >
                   <Send size={18} />
                   Enviar solicitação pelo WhatsApp

@@ -1,8 +1,8 @@
 import { Instagram, MapPin, MessageCircle, Phone } from "lucide-react";
-import { business } from "@/config/business";
 import { whatsappUrl } from "@/lib/whatsapp";
+import type { BusinessSettings } from "@/types/domain";
 import { Logo } from "./Logo";
-export function Footer() {
+export function Footer({ business }: { business: BusinessSettings }) {
   return (
     <footer className="bg-olive py-12 text-white">
       <div className="container grid gap-8 md:grid-cols-3">
@@ -23,14 +23,15 @@ export function Footer() {
               target="_blank"
               href={whatsappUrl(
                 "Olá! Vim pelo site da Nosso Pet e gostaria de mais informações.",
+                business.whatsappRaw,
               )}
             >
               <MessageCircle className="mr-2 inline" size={16} />
               {business.whatsapp}
             </a>
-            <a target="_blank" href={business.instagramUrl}>
+            <a target="_blank" href={business.instagram.url}>
               <Instagram className="mr-2 inline" size={16} />
-              {business.instagram}
+              {business.instagram.handle}
             </a>
           </div>
         </div>
@@ -38,7 +39,7 @@ export function Footer() {
           <h3 className="font-black">Onde estamos</h3>
           <p className="mt-4 text-sm leading-6 text-white/75">
             <MapPin className="mr-2 inline" size={16} />
-            {business.address.street}
+            {business.address.line}
             <br />
             {business.address.district}
             <br />

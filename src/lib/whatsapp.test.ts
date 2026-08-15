@@ -27,4 +27,11 @@ describe("WhatsApp message templates", () => {
   it("uses the configured number and URL-encodes special characters", () => {
     expect(whatsappUrl("Olá & tudo bem? 🐾")).toBe("https://wa.me/5511966442719?text=Ol%C3%A1%20%26%20tudo%20bem%3F%20%F0%9F%90%BE");
   });
+
+  it("accepts a remote business number without changing the default", () => {
+    expect(whatsappUrl("Olá", "5511999999999")).toBe(
+      "https://wa.me/5511999999999?text=Ol%C3%A1",
+    );
+    expect(whatsappUrl("Olá")).toContain("5511966442719");
+  });
 });

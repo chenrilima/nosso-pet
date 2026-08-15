@@ -1,9 +1,11 @@
 # nosso-pet
 # Nosso Pet Banho e Tosa
 
-Site público em Next.js 16 com uma fundação Supabase versionada. A camada pública de leitura está preparada em `src/data/queries`, mas a home continua usando os dados locais em `src/config` e `src/data`; a migração da interface fica para a Etapa 4.
+Site público em Next.js 16 com uma fundação Supabase versionada. A home consome a camada pública agregada em `src/data/queries`; os dados locais em `src/config` e `src/data` permanecem apenas como fallback técnico e apresentação temporária da galeria vazia.
 
-O fluxo de leitura é `Supabase → repositories → queries → adapters → modelos de domínio`. A agregação `getPublicSiteDataWithFallback()` aplica fallback local por recurso, diferencia respostas vazias de falhas e informa a origem de cada conjunto de dados. Os modelos remotos usam o UUID do banco em `id` e preservam `slug` como identidade estável de domínio. Durante a transição, os produtos de fallback mantêm seus IDs locais; a sacola só será adaptada quando a home for migrada.
+O fluxo de leitura é `Supabase → repositories → queries → adapters → modelos de domínio → page.tsx → componentes`. A agregação `getPublicSiteDataWithFallback()` aplica fallback local por recurso, diferencia respostas vazias de falhas e informa a origem de cada conjunto de dados. Os modelos remotos usam o UUID do banco em `id` e preservam `slug` como identidade estável de domínio; a sacola aceita tanto UUIDs remotos quanto IDs locais estáveis.
+
+A rota `/` usa ISR com revalidação de 60 segundos. Em produção, uma alteração editorial aparece após a primeira visita posterior ao intervalo de revalidação; enquanto a atualização é calculada, o Next pode servir a versão anterior. A leitura pública usa somente a Publishable Key e as policies RLS. No futuro, o painel poderá invalidar a rota imediatamente com `revalidatePath("/")` após uma gravação bem-sucedida.
 
 ## Desenvolvimento local
 

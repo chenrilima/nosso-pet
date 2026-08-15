@@ -12,7 +12,7 @@ const links = [
   ["Sobre", "sobre"],
   ["Localização", "localizacao"],
 ];
-export function Header() {
+export function Header({ whatsappRaw }: { whatsappRaw: string }) {
   const [open, setOpen] = useState(false);
   return (
     <header className="sticky top-0 z-50 border-b border-black/5 bg-white/95 backdrop-blur">
@@ -35,6 +35,7 @@ export function Header() {
             target="_blank"
             href={whatsappUrl(
               "Olá! Vim pelo site da Nosso Pet e gostaria de agendar um atendimento.",
+              whatsappRaw,
             )}
           >
             Agendar pelo WhatsApp

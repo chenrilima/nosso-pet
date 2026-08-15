@@ -37,4 +37,37 @@ describe("public site aggregation and fallback", () => {
     expect(result.data.bookableServices.map((service) => service.name)).not.toContain("Outro");
     spy.mockRestore();
   });
+
+  it("supports a complete fallback without replacing valid empty lists", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const failingQueries: PublicSiteQueries = {
+      business: vi.fn(() => failed()),
+      categories: vi.fn(() => failed()),
+      products: vi.fn(() => failed()),
+      services: vi.fn(() => failed()),
+      bookableServices: vi.fn(() => failed()),
+      gallery: vi.fn(() => failed()),
+      faqs: vi.fn(() => failed()),
+    };
+    const fallback = await getPublicSiteDataWithFallback(failingQueries);
+    const remoteEmpty = await getPublicSiteDataWithFallback(queries());
+
+    expect(fallback.source).toBe("fallback");
+    expect(fallback.data.products).toHaveLength(5);
+    expect(remoteEmpty.data.products).toEqual([]);
+    expect(remoteEmpty.data.services).toEqual([]);
+    expect(remoteEmpty.data.faqs).toEqual([]);
+    spy.mockRestore();
+  });
+
+  it("keeps an empty gallery for presentation to resolve after a technical failure", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const result = await getPublicSiteDataWithFallback({
+      ...queries(),
+      gallery: vi.fn(() => failed()),
+    });
+    expect(result.sources.gallery).toBe("fallback");
+    expect(result.data.gallery).toEqual([]);
+    spy.mockRestore();
+  });
 });

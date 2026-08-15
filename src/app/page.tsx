@@ -15,15 +15,23 @@ import { Header } from "@/components/Header";
 import { Booking } from "@/components/Booking";
 import { Products, TaxiPet } from "@/components/Commerce";
 import { Footer } from "@/components/Footer";
-import { services } from "@/data/services";
-import { faq } from "@/data/faq";
-import { business } from "@/config/business";
+import { fallbackBusiness } from "@/data/fallbacks/public-site.fallback";
+import { getPublicSiteDataWithFallback } from "@/data/queries/public-site.query";
+import { galleryForPresentation } from "@/lib/gallery-presentation";
+import { resolveServiceIcon } from "@/lib/service-icons";
 import { whatsappUrl } from "@/lib/whatsapp";
 
-export default function Home() {
+export const dynamic = "force-static";
+export const revalidate = 60;
+
+export default async function Home() {
+  const { data } = await getPublicSiteDataWithFallback();
+  const business = data.business ?? fallbackBusiness;
+  const gallery = galleryForPresentation(data.gallery);
+
   return (
     <>
-      <Header />
+      <Header whatsappRaw={business.whatsappRaw} />
       <main id="top">
         <section className="overflow-hidden bg-cream">
           <div className="container grid min-h-[680px] items-center gap-10 py-16 lg:grid-cols-[.85fr_1.15fr]">
@@ -89,26 +97,32 @@ export default function Home() {
               </p>
             </div>
             <div className="mt-11 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {services.map(({ name, description, icon: Icon }) => (
+              {data.services.map((service) => {
+                const Icon = resolveServiceIcon(service.iconKey);
+                return (
                 <article
-                  key={name}
+                  key={service.id}
                   className="card group p-6 hover:-translate-y-1 hover:border-brand/40"
                 >
                   <span className="grid h-12 w-12 place-items-center rounded-2xl bg-orange-50 text-brand group-hover:bg-brand group-hover:text-white">
                     <Icon />
                   </span>
-                  <h3 className="mt-5 text-xl font-black">{name}</h3>
+                  <h3 className="mt-5 text-xl font-black">{service.name}</h3>
                   <p className="mt-2 text-sm leading-6 text-gray-500">
-                    {description}
+                    {service.description}
                   </p>
                 </article>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
-        <Booking />
-        <TaxiPet />
-        <Products />
+        <Booking
+          services={data.bookableServices}
+          whatsappRaw={business.whatsappRaw}
+        />
+        <TaxiPet whatsappRaw={business.whatsappRaw} />
+        <Products products={data.products} whatsappRaw={business.whatsappRaw} />
         <section id="galeria" className="section bg-cream">
           <div className="container">
             <div className="flex flex-wrap items-end justify-between gap-4">
@@ -117,7 +131,7 @@ export default function Home() {
                 <h2 className="title mt-2">Clientes de quatro patas</h2>
               </div>
               <a
-                href={business.instagramUrl}
+                href={business.instagram.url}
                 target="_blank"
                 className="btn btn-secondary"
               >
@@ -126,30 +140,27 @@ export default function Home() {
               </a>
             </div>
             <div className="mt-10 grid h-[620px] grid-cols-2 gap-4 md:grid-cols-4 md:grid-rows-2">
-              {[
-                "object-[70%_50%]",
-                "object-[92%_55%]",
-                "object-[55%_50%]",
-                "object-[80%_50%]",
-              ].map((pos, i) => (
+              {gallery.map((image, i) => (
                 <div
-                  key={i}
+                  key={image.id}
                   className={`${i === 0 ? "row-span-2" : ""} overflow-hidden rounded-3xl bg-white`}
                 >
                   <Image
-                    src="/images/hero-pets.png"
-                    alt="Pet bem cuidado pela Nosso Pet"
+                    src={image.imageUrl}
+                    alt={image.altText}
                     width={900}
                     height={700}
-                    className={`h-full w-full object-cover transition duration-500 hover:scale-105 ${pos}`}
+                    className={`h-full w-full object-cover transition duration-500 hover:scale-105 ${image.objectPosition ?? ""}`}
                   />
                 </div>
               ))}
             </div>
-            <p className="mt-4 text-xs text-gray-500">
-              Imagens ilustrativas nesta primeira versão; substitua pelas fotos
-              reais do estabelecimento em public/images.
-            </p>
+            {data.gallery.length === 0 && (
+              <p className="mt-4 text-xs text-gray-500">
+                Imagens ilustrativas nesta primeira versão; substitua pelas
+                fotos reais do estabelecimento em public/images.
+              </p>
+            )}
           </div>
         </section>
         <section id="sobre" className="section">
@@ -188,15 +199,15 @@ export default function Home() {
               <h2 className="title mt-2">Antes de falar com a gente</h2>
             </div>
             <div className="mx-auto mt-9 max-w-3xl space-y-3">
-              {faq.map(([q, a]) => (
-                <details className="card group p-5" key={q}>
+              {data.faqs.map((faq) => (
+                <details className="card group p-5" key={faq.id}>
                   <summary className="cursor-pointer list-none pr-8 font-black">
-                    {q}
+                    {faq.question}
                     <span className="float-right text-brand group-open:rotate-45">
                       +
                     </span>
                   </summary>
-                  <p className="mt-3 leading-7 text-gray-600">{a}</p>
+                  <p className="mt-3 leading-7 text-gray-600">{faq.answer}</p>
                 </details>
               ))}
             </div>
@@ -208,18 +219,18 @@ export default function Home() {
               <p className="eyebrow">Localização</p>
               <h2 className="title mt-2">Estamos em Taboão da Serra</h2>
               <p className="mt-5 text-lg leading-8 text-gray-600">
-                {business.address.street}
+                {business.address.line}
                 <br />
                 {business.address.district}
                 <br />
                 {business.address.city} - {business.address.state}
                 <br />
-                CEP {business.address.zip}
+                CEP {business.address.postalCode}
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <a
                   target="_blank"
-                  href={business.mapsUrl}
+                  href={business.maps.url}
                   className="btn btn-primary"
                 >
                   <MapPin size={18} />
@@ -244,7 +255,7 @@ export default function Home() {
               title="Mapa da Nosso Pet em Taboão da Serra"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              src={business.mapsEmbed}
+              src={business.maps.embedUrl}
               className="h-[420px] w-full rounded-[2rem] border-0"
             />
           </div>
@@ -256,11 +267,12 @@ export default function Home() {
         target="_blank"
         href={whatsappUrl(
           "Olá! Vim pelo site da Nosso Pet e gostaria de mais informações.",
+          business.whatsappRaw,
         )}
       >
         <MessageCircle />
       </a>
-      <Footer />
+      <Footer business={business} />
     </>
   );
 }

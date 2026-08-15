@@ -11,8 +11,8 @@ export type Booking = {
   date: string;
   period: string;
 };
-export const whatsappUrl = (message: string) =>
-  `https://wa.me/${business.whatsappRaw}?text=${encodeURIComponent(message)}`;
+export const whatsappUrl = (message: string, number = business.whatsappRaw) =>
+  `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 export function bookingMessage(b: Booking) {
   return `Olá! 👋 Gostaria de solicitar um atendimento na Nosso Pet.\n\n🐾 PET\nNome: ${b.name}\nTipo: ${b.type}\nRaça: ${b.breed || "Não informada"}\nPorte: ${b.size}\nIdade: ${b.age || "Não informada"}\nSexo: ${b.sex || "Não informado"}\n\n🛁 SERVIÇOS\n${b.services.join(", ")}\n\n📅 PREFERÊNCIA\nData: ${b.date.split("-").reverse().join("/")}\nPeríodo: ${b.period}\n\n📝 OBSERVAÇÕES\n${b.notes || "Nenhuma observação."}\n\nPodem me informar os horários disponíveis?`;
 }

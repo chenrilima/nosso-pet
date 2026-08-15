@@ -1,9 +1,11 @@
 "use client";
+import Image from "next/image";
 import { useState } from "react";
 import { Car, Minus, Plus, Send, ShoppingBag, Trash2 } from "lucide-react";
-import { products, Product } from "@/data/products";
 import { cartMessage, taxiMessage, whatsappUrl } from "@/lib/whatsapp";
-export function TaxiPet() {
+import type { Product } from "@/types/domain";
+
+export function TaxiPet({ whatsappRaw }: { whatsappRaw: string }) {
   const [open, setOpen] = useState(false);
   const [d, setD] = useState({
     name: "",
@@ -40,7 +42,7 @@ export function TaxiPet() {
             className="card grid gap-4 p-6 sm:grid-cols-2"
             onSubmit={(e) => {
               e.preventDefault();
-              window.open(whatsappUrl(taxiMessage(d)), "_blank");
+              window.open(whatsappUrl(taxiMessage(d), whatsappRaw), "_blank");
             }}
           >
             {Object.entries({
@@ -100,20 +102,36 @@ export function TaxiPet() {
   );
 }
 type CartItem = Product & { quantity: number };
-export function Products() {
+export const addCartItem = (cart: CartItem[], product: Product): CartItem[] =>
+  cart.some((item) => item.id === product.id)
+    ? cart.map((item) =>
+        item.id === product.id
+          ? { ...item, quantity: item.quantity + 1 }
+          : item,
+      )
+    : [...cart, { ...product, quantity: 1 }];
+
+export const setCartQuantity = (
+  cart: CartItem[],
+  id: string,
+  quantity: number,
+): CartItem[] =>
+  cart
+    .map((item) => (item.id === id ? { ...item, quantity } : item))
+    .filter((item) => item.quantity > 0);
+
+export function Products({
+  products,
+  whatsappRaw,
+}: {
+  products: Product[];
+  whatsappRaw: string;
+}) {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const add = (p: Product) =>
-    setCart((c) =>
-      c.some((x) => x.id === p.id)
-        ? c.map((x) => (x.id === p.id ? { ...x, quantity: x.quantity + 1 } : x))
-        : [...c, { ...p, quantity: 1 }],
-    );
+  const add = (product: Product) =>
+    setCart((cart) => addCartItem(cart, product));
   const qty = (id: string, n: number) =>
-    setCart((c) =>
-      c
-        .map((x) => (x.id === id ? { ...x, quantity: n } : x))
-        .filter((x) => x.quantity > 0),
-    );
+    setCart((cart) => setCartQuantity(cart, id, n));
   return (
     <section id="produtos" className="section">
       <div className="container">
@@ -136,11 +154,21 @@ export function Products() {
               <div
                 className={`grid h-32 place-items-center ${["bg-orange-100", "bg-amber-50", "bg-lime-50", "bg-sky-50", "bg-purple-50"][i]}`}
               >
-                <ShoppingBag className="text-olive/50" size={46} />
+                {p.imageUrl ? (
+                  <Image
+                    src={p.imageUrl}
+                    alt={p.name}
+                    width={320}
+                    height={128}
+                    className="h-32 w-full object-cover"
+                  />
+                ) : (
+                  <ShoppingBag className="text-olive/50" size={46} />
+                )}
               </div>
               <div className="flex flex-1 flex-col p-5">
                 <small className="font-black uppercase text-brand">
-                  {p.category}
+                  {p.category.name}
                 </small>
                 <h3 className="mt-2 font-black">{p.name}</h3>
                 <p className="mt-2 flex-1 text-sm text-gray-500">
@@ -193,7 +221,7 @@ export function Products() {
             </div>
             <a
               target="_blank"
-              href={whatsappUrl(cartMessage(cart))}
+              href={whatsappUrl(cartMessage(cart), whatsappRaw)}
               className="btn btn-primary mt-5 w-full"
             >
               <Send size={18} />
