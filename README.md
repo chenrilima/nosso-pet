@@ -63,3 +63,59 @@ Na galeria, imagens JPEG, PNG, WebP e AVIF de até 20 MiB são decodificadas no 
 O usuário criado manualmente deve estar com o e-mail confirmado antes do primeiro login. O painel não oferece cadastro, confirmação de e-mail nem recuperação de senha. A autenticação administrativa usa uma Server Action, cookies gerenciados por `@supabase/ssr` e refresh em `proxy.ts`; a autorização final sempre ocorre no servidor consultando `profiles.role = 'admin'` com a sessão do próprio usuário e respeitando RLS.
 
 Na migração futura da home, mantenha o `slug` como identidade estável de domínio (os slugs de produtos preservam os IDs locais atuais) e use o UUID apenas como chave do banco.
+
+## Operação em produção
+
+### Netlify e variáveis de ambiente
+
+- Build command: `npm run build`.
+- Runtime: Node.js 22, definido em `package.json` e `.nvmrc`.
+- Configure `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` no ambiente de produção e nos previews que precisarem acessar o projeto remoto.
+- Não configure `service_role`, secret key, senha de banco ou credenciais de administrador no frontend.
+- O deploy usa o runtime Next.js da plataforma e não depende de Docker. Docker é necessário apenas para a pilha Supabase local.
+
+O domínio definitivo ainda não está registrado no repositório. Quando ele for definido, configure no Supabase Auth:
+
+- **Site URL**: `https://DOMINIO_DE_PRODUCAO`.
+- **Redirect URLs**: `https://DOMINIO_DE_PRODUCAO/admin/**` e as URLs exatas de preview autorizadas, se previews administrativos forem necessários.
+- Desenvolvimento local: mantenha `http://localhost:3000/admin/**` somente nos ambientes em que o login local for usado.
+
+Administradores são criados manualmente em Authentication, devem ter o e-mail confirmado e precisam de um registro correspondente em `public.profiles` com `role = 'admin'`. Não há cadastro público. Nunca altere automaticamente a senha de um administrador existente.
+
+### Migrations e testes SQL
+
+O fluxo operacional é: criar uma migration, testar com `supabase db reset`, executar lint e testes locais, aplicar com `supabase db push`, confirmar com `supabase migration list` e somente então fazer deploy. Não edite manualmente o histórico remoto para contornar divergências.
+
+Os arquivos em `supabase/tests/` são testes de integração SQL transacionais, não TAP. Por isso, execute-os diretamente contra o banco local; cada arquivo termina com `rollback` e não deixa fixtures:
+
+```bash
+psql "$(supabase status -o env | sed -n 's/^DB_URL=//p')" -v ON_ERROR_STOP=1 -f supabase/tests/admin_products_services.sql
+psql "$(supabase status -o env | sed -n 's/^DB_URL=//p')" -v ON_ERROR_STOP=1 -f supabase/tests/admin_faq_gallery.sql
+```
+
+`supabase test db` não deve ser usado como sinal de sucesso enquanto esses arquivos não forem convertidos para TAP.
+
+### Cache e limitações conhecidas
+
+A home mantém `revalidate = 60`, e as mutações editoriais de Empresa, Categorias, Produtos, Serviços, FAQ e Galeria invalidam `/` após sucesso. Se o Supabase estiver indisponível, o fallback local mantém o site utilizável, mas pode exibir conteúdo anterior às alterações do painel. O painel não sincroniza esse fallback. Metadata e JSON-LD ainda podem usar valores locais e devem ser revistos na auditoria final de produção.
+
+### Checklist operacional
+
+- [ ] Migrations locais e remotas estão sincronizadas; `supabase db lint --linked` passa.
+- [ ] Variáveis públicas do Supabase estão configuradas sem secrets.
+- [ ] Site URL e Redirect URLs usam o domínio definitivo.
+- [ ] Administrador real existe, tem e-mail confirmado e profile `admin`.
+- [ ] `npm run lint`, `npm run typecheck`, `npm test` e `npm run build` passam.
+- [ ] Smoke público valida Hero, Serviços, Booking, TaxiPet, Produtos, Sacola, Galeria, FAQ, Mapa, Footer e WhatsApp em mobile e desktop.
+- [ ] Smoke autenticado valida login, dashboard, todos os CRUDs, upload/substituição/exclusão da galeria, logout e expiração de sessão.
+- [ ] Dados temporários do smoke foram removidos e dados comerciais restaurados.
+
+Checklist manual detalhado do painel:
+
+- [ ] Empresa: editar, salvar, conferir a home e restaurar os valores.
+- [ ] Categorias: criar, editar, desativar, ativar, bloquear exclusão com produto e excluir uma categoria vazia.
+- [ ] Produtos: criar com preço vazio e decimal, editar, destacar, desativar, ativar e excluir.
+- [ ] Serviços: validar preço fixo, a partir de e sob consulta; agendável/não agendável; editar, alternar status e excluir.
+- [ ] FAQ: criar, editar, publicar, despublicar e excluir.
+- [ ] Galeria: otimizar, enviar, editar metadata, substituir, publicar, despublicar e excluir; conferir ausência de arquivo órfão no fluxo normal.
+- [ ] Segurança: anon e authenticated sem profile não gravam; toda Server Action exige admin; logout e sessão expirada voltam ao login.

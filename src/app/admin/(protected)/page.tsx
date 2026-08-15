@@ -10,11 +10,11 @@ export default async function AdminDashboardPage() {
   const admin = await requireAdmin();
   const summary = await getAdminDashboardSummary(await createClient());
   const cards = [
-    ["Produtos", summary.products, "cadastrados", Package],
-    ["Serviços", summary.services, "cadastrados", Scissors],
+    ["Produtos", summary.products, "cadastrados", Package, "/admin/products"],
+    ["Serviços", summary.services, "cadastrados", Scissors, "/admin/services"],
     ["Categorias", summary.categories, "cadastradas", Tags, "/admin/categories"],
-    ["FAQ", summary.faqs, "perguntas", CircleHelp],
-    ["Galeria", summary.galleryImages, "fotos", Images],
+    ["FAQ", summary.faqs, "perguntas", CircleHelp, "/admin/faqs"],
+    ["Galeria", summary.galleryImages, "fotos", Images, "/admin/gallery"],
   ] as const;
   return (
     <>
