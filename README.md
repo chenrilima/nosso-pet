@@ -26,6 +26,8 @@ supabase db reset
 npm run dev
 ```
 
+Ao encerrar o ambiente local, execute `supabase stop`.
+
 Preencha em `.env.local` os valores exibidos por `supabase status`:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
@@ -38,6 +40,8 @@ npm run lint
 npm run typecheck
 npm test
 npm run build
+supabase db lint --local
+supabase db lint --linked
 ```
 
 Após alterar migrations, recrie o banco e atualize o snapshot de tipos:
@@ -56,7 +60,7 @@ insert into public.profiles (id, display_name, role)
 values ('UUID_DO_AUTH_USER', 'Nome do administrador', 'admin');
 ```
 
-Não use uma chave `service_role` no navegador nem a adicione ao repositório. O bucket público `site-assets` aceita somente imagens JPEG, PNG, WebP ou AVIF de até 5 MiB; escritas ficam limitadas a administradores e aos diretórios `products/`, `services/` e `gallery/`. O futuro painel também deverá validar MIME, extensão e nomes seguros antes do upload.
+Não use uma chave `service_role` no navegador nem a adicione ao repositório. O bucket público `site-assets` aceita somente imagens JPEG, PNG, WebP ou AVIF de até 5 MiB; escritas ficam limitadas a administradores e aos diretórios `products/`, `services/` e `gallery/`. O upload da galeria também valida MIME, tamanho, extensão e nomes seguros antes de registrar o arquivo.
 
 Na galeria, imagens JPEG, PNG, WebP e AVIF de até 20 MiB são decodificadas no navegador, sem ampliar, e limitadas a 1920 px no maior lado. Fotos viram WebP com qualidade 0,82; PNG com transparência permanece PNG. O resultado, novamente limitado a 5 MiB, é enviado com UUID em `gallery/`. O servidor valida sessão administrativa, path, MIME e tamanho antes de registrar a metadata. Falha de cadastro remove o arquivo novo; substituição só remove o arquivo antigo depois de atualizar o registro. Na exclusão, o registro é removido primeiro para nunca deixar a home apontando para arquivo ausente, e uma eventual falha de Storage é registrada para limpeza posterior. Sem foto publicada, a home mantém temporariamente a galeria ilustrativa local.
 
@@ -69,12 +73,15 @@ Na migração futura da home, mantenha o `slug` como identidade estável de dom�
 ### Netlify e variáveis de ambiente
 
 - Build command: `npm run build`.
+- Publish directory: `.next`.
 - Runtime: Node.js 22, definido em `package.json` e `.nvmrc`.
 - Configure `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` no ambiente de produção e nos previews que precisarem acessar o projeto remoto.
 - Não configure `service_role`, secret key, senha de banco ou credenciais de administrador no frontend.
 - O deploy usa o runtime Next.js da plataforma e não depende de Docker. Docker é necessário apenas para a pilha Supabase local.
+- O adapter OpenNext atual é aplicado automaticamente pelo Netlify. Não fixe nem adicione `@netlify/plugin-nextjs` ao repositório sem uma necessidade comprovada.
+- O fluxo recomendado é validar `dev`, fazer merge manual em `main` e deixar o Netlify publicar a produção. Se deploy previews estiverem ativos para `dev`, eles também consomem créditos.
 
-O domínio definitivo ainda não está registrado no repositório. Quando ele for definido, configure no Supabase Auth:
+O layout usa atualmente `https://nossopettaboao.com.br` como `metadataBase`, mas a origem definitiva de produção ainda precisa ser confirmada. Quando ela for definida, alinhe a metadata e configure no Supabase Auth:
 
 - **Site URL**: `https://DOMINIO_DE_PRODUCAO`.
 - **Redirect URLs**: `https://DOMINIO_DE_PRODUCAO/admin/**` e as URLs exatas de preview autorizadas, se previews administrativos forem necessários.
@@ -95,11 +102,23 @@ psql "$(supabase status -o env | sed -n 's/^DB_URL=//p')" -v ON_ERROR_STOP=1 -f 
 
 `supabase test db` não deve ser usado como sinal de sucesso enquanto esses arquivos não forem convertidos para TAP.
 
+Se `psql` não estiver instalado no host, os mesmos arquivos podem ser enviados ao `psql` do contêiner `supabase_db_nosso-pet`; mantenha `ON_ERROR_STOP=1`. Os testes são transacionais e terminam em `rollback`.
+
 ### Cache e limitações conhecidas
 
-A home mantém `revalidate = 60`, e as mutações editoriais de Empresa, Categorias, Produtos, Serviços, FAQ e Galeria invalidam `/` após sucesso. Se o Supabase estiver indisponível, o fallback local mantém o site utilizável, mas pode exibir conteúdo anterior às alterações do painel. O painel não sincroniza esse fallback. Metadata e JSON-LD ainda podem usar valores locais e devem ser revistos na auditoria final de produção.
+A home mantém `revalidate = 60`, e as mutações editoriais de Empresa, Categorias, Produtos, Serviços, FAQ e Galeria invalidam `/` após sucesso. Se o Supabase estiver indisponível, o fallback local mantém o site utilizável, mas pode exibir conteúdo anterior às alterações do painel. O painel não sincroniza esse fallback. Metadata e JSON-LD ainda usam valores locais e podem divergir de Business Settings.
+
+O admin publica metadata `noindex, nofollow`, e `robots.ts` bloqueia `/admin/`. A home permanece indexável. O sitemap deve ser adicionado somente quando a origem final (URL Netlify ou domínio customizado) estiver confirmada; não use uma origem provisória como canônica.
 
 ### Checklist operacional
+
+- [ ] Smoke admin local/remoto concluído e dados restaurados.
+- [ ] Envs de produção do Netlify conferidas.
+- [ ] Site URL e Redirect URLs do Supabase Auth conferidas.
+- [ ] Branch `dev` validada e merge manual `dev` → `main` concluído.
+- [ ] Deploy Netlify concluído sem `public_data_fallback`.
+- [ ] Smoke de produção público/admin/mobile concluído.
+- [ ] Documentação e acessos operacionais entregues ao cliente.
 
 - [ ] Migrations locais e remotas estão sincronizadas; `supabase db lint --linked` passa.
 - [ ] Variáveis públicas do Supabase estão configuradas sem secrets.

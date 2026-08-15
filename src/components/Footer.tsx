@@ -21,6 +21,7 @@ export function Footer({ business }: { business: BusinessSettings }) {
             </a>
             <a
               target="_blank"
+              rel="noopener noreferrer"
               href={whatsappUrl(
                 "Olá! Vim pelo site da Nosso Pet e gostaria de mais informações.",
                 business.whatsappRaw,
@@ -29,7 +30,7 @@ export function Footer({ business }: { business: BusinessSettings }) {
               <MessageCircle className="mr-2 inline" size={16} />
               {business.whatsapp}
             </a>
-            <a target="_blank" href={business.instagram.url}>
+            <a target="_blank" rel="noopener noreferrer" href={business.instagram.url}>
               <Instagram className="mr-2 inline" size={16} />
               {business.instagram.handle}
             </a>

@@ -135,6 +135,7 @@ export default async function Home() {
               <a
                 href={business.instagram.url}
                 target="_blank"
+                rel="noopener noreferrer"
                 className="btn btn-secondary"
               >
                 <Instagram size={18} />
@@ -232,6 +233,7 @@ export default async function Home() {
               <div className="mt-7 flex flex-wrap gap-3">
                 <a
                   target="_blank"
+                  rel="noopener noreferrer"
                   href={business.maps.url}
                   className="btn btn-primary"
                 >
@@ -278,6 +280,7 @@ export default async function Home() {
         className="fixed bottom-5 right-5 z-40 grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl hover:scale-105"
         aria-label="Falar com a Nosso Pet pelo WhatsApp"
         target="_blank"
+        rel="noopener noreferrer"
         href={whatsappUrl(
           "Olá! Vim pelo site da Nosso Pet e gostaria de mais informações.",
           business.whatsappRaw,

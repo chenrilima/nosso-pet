@@ -252,6 +252,7 @@ export function Booking({
                 <a
                   className="btn btn-primary mt-6 w-full"
                   target="_blank"
+                  rel="noopener noreferrer"
                   href={whatsappUrl(bookingMessage(b), whatsappRaw)}
                 >
                   <Send size={18} />

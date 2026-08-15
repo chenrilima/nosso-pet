@@ -33,6 +33,7 @@ export function Header({ whatsappRaw }: { whatsappRaw: string }) {
           <a
             className="btn btn-primary text-sm"
             target="_blank"
+            rel="noopener noreferrer"
             href={whatsappUrl(
               "Olá! Vim pelo site da Nosso Pet e gostaria de agendar um atendimento.",
               whatsappRaw,

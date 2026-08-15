@@ -221,6 +221,7 @@ export function Products({
             </div>
             <a
               target="_blank"
+              rel="noopener noreferrer"
               href={whatsappUrl(cartMessage(cart), whatsappRaw)}
               className="btn btn-primary mt-5 w-full"
             >
