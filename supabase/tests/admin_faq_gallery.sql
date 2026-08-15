@@ -8,6 +8,8 @@ insert into public.profiles (id, display_name, role) values ('93000000-0000-4000
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '93000000-0000-4000-8000-000000000001', true);
+update public.business_settings set hero_image_path = 'hero/99000000-0000-4000-8000-000000000001.webp';
+update public.business_settings set hero_image_path = null;
 insert into public.faqs (id, question, answer, sort_order, is_published) values ('94000000-0000-4000-8000-000000000001', 'FAQ integração?', 'Resposta temporária.', 8, true);
 update public.faqs set answer = 'Resposta editada.', is_published = false where id = '94000000-0000-4000-8000-000000000001';
 update public.faqs set is_published = true where id = '94000000-0000-4000-8000-000000000001';
@@ -24,6 +26,7 @@ update storage.objects set name = 'gallery/97000000-0000-4000-8000-000000000001.
 select set_config('request.jwt.claim.sub', '93000000-0000-4000-8000-000000000002', true);
 do $$
 begin
+  update public.business_settings set hero_image_path = 'hero/blocked.webp'; if found then raise exception 'RLS negativa falhou para hero update'; end if;
   begin insert into public.faqs (question, answer) values ('Bloqueada?', 'RLS'); raise exception 'RLS negativa falhou para faqs insert'; exception when insufficient_privilege then null; end;
   update public.faqs set answer = 'Bloqueada' where id = '50000000-0000-4000-8000-000000000001'; if found then raise exception 'RLS negativa falhou para faqs update'; end if;
   delete from public.faqs where id = '50000000-0000-4000-8000-000000000001'; if found then raise exception 'RLS negativa falhou para faqs delete'; end if;

@@ -14,7 +14,7 @@ const refresh = () => { revalidatePath("/"); revalidatePath("/admin/products"); 
 function failure(error: unknown): AdminActionResult {
   if (error instanceof RepositoryError && error.infrastructureCode === "23505") return { ok: false, message: "Já existe um produto com esse slug.", fieldErrors: { slug: "Escolha outro slug." } };
   if (error instanceof RepositoryError && error.infrastructureCode === "23503") return { ok: false, message: "A categoria selecionada não está disponível.", fieldErrors: { categoryId: "Selecione outra categoria." } };
-  console.error("Falha em mutação de produto.", error instanceof Error ? { name: error.name } : undefined);
+  console.error("Falha em mutação de produto.", { entity: error instanceof RepositoryError ? error.entity : "products", operation: error instanceof RepositoryError ? error.operation : "mutation", code: error instanceof RepositoryError ? error.infrastructureCode : undefined, name: error instanceof Error ? error.name : "unknown" });
   return { ok: false, message: "Não foi possível salvar. Tente novamente." };
 }
 async function categoryAvailable(client: Awaited<ReturnType<typeof createClient>>, categoryId: string, currentCategoryId?: string) { return (await listAdminCategories(client)).some((category) => category.id === categoryId && (category.is_active || category.id === currentCategoryId)); }

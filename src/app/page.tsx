@@ -80,7 +80,7 @@ export default async function Home() {
               <div className="absolute -inset-5 rotate-3 rounded-[3rem] bg-brand/10" />
               <Image
                 priority
-                src="/images/hero-pets.png"
+                src={business.heroImageUrl ?? "/images/hero-pets.png"}
                 width={1456}
                 height={1086}
                 alt="Cães bem cuidados em ambiente de banho e tosa"
@@ -147,11 +147,11 @@ export default async function Home() {
                 Ver Instagram
               </a>
             </div>
-            <div className="mt-10 grid h-[620px] grid-cols-2 gap-4 md:grid-cols-4 md:grid-rows-2">
+            <div className="mt-10 grid auto-rows-[260px] grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
               {gallery.map((image, i) => (
                 <div
                   key={image.id}
-                  className={`${i === 0 ? "row-span-2" : ""} overflow-hidden rounded-3xl bg-white`}
+                  className={`${i === 0 && gallery.length > 1 ? "sm:row-span-2" : ""} overflow-hidden rounded-3xl bg-white`}
                 >
                   <Image
                     src={image.imageUrl}

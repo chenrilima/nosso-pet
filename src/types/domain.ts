@@ -1,5 +1,5 @@
 export type BusinessHours = Readonly<Record<string, string>>;
-export type BusinessSettings = { id: string; name: string; shortName: string; phone: string; phoneRaw: string; whatsapp: string; whatsappRaw: string; instagram: { handle: string; url: string }; address: { line: string; district: string; city: string; state: string; postalCode: string }; maps: { url: string; embedUrl: string }; hours: BusinessHours | null };
+export type BusinessSettings = { id: string; name: string; shortName: string; phone: string; phoneRaw: string; whatsapp: string; whatsappRaw: string; instagram: { handle: string; url: string }; address: { line: string; district: string; city: string; state: string; postalCode: string }; maps: { url: string; embedUrl: string }; hours: BusinessHours | null; heroImagePath: string | null; heroImageUrl: string | null };
 export type Category = { id: string; name: string; slug: string; sortOrder: number };
 export type Product = { id: string; slug: string; name: string; description: string; category: Category; price: number | null; imageUrl: string | null; isFeatured: boolean; sortOrder: number };
 export type PricingType = "fixed" | "starting_at" | "quote";

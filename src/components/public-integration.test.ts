@@ -49,6 +49,7 @@ describe("public component data contracts", () => {
   it("uses remote gallery images and preserves the temporary local gallery when empty", () => {
     const remote: GalleryImage[] = [{ id: "photo", imageUrl: "https://example.com/photo.webp", altText: "Pet", caption: null, sortOrder: 0 }];
     expect(galleryForPresentation(remote)).toEqual([{ id: "photo", imageUrl: "https://example.com/photo.webp", altText: "Pet" }]);
+    expect(galleryForPresentation([...remote, { ...remote[0], id: "photo-2" }, { ...remote[0], id: "photo-3" }, { ...remote[0], id: "photo-4" }, { ...remote[0], id: "photo-5" }])).toHaveLength(5);
     expect(galleryForPresentation([])).toHaveLength(4);
     expect(galleryForPresentation([])[0].imageUrl).toBe("/images/hero-pets.png");
   });

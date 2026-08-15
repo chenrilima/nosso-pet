@@ -17,13 +17,13 @@ const categoryRow: CategoryRow = { ...timestamps, id: "category", name: "Raçõe
 
 describe("database to domain adapters", () => {
   it("maps business fields and null hours", () => {
-    const row: BusinessSettingsRow = { ...timestamps, id: "business", singleton_key: true, name: "Nosso Pet", short_name: "NP", phone: "phone", phone_raw: "raw", whatsapp: "whatsapp", whatsapp_raw: "wa-raw", instagram_handle: "@pet", instagram_url: "https://instagram.test", address_line: "Rua 1", district: "Centro", city: "Taboão", state: "SP", postal_code: "00000", maps_url: "https://maps.test", maps_embed_url: "https://embed.test", hours: null };
-    expect(toBusinessSettings(row)).toMatchObject({ shortName: "NP", address: { line: "Rua 1" }, hours: null });
+    const row: BusinessSettingsRow = { ...timestamps, id: "business", singleton_key: true, name: "Nosso Pet", short_name: "NP", phone: "phone", phone_raw: "raw", whatsapp: "whatsapp", whatsapp_raw: "wa-raw", instagram_handle: "@pet", instagram_url: "https://instagram.test", address_line: "Rua 1", district: "Centro", city: "Taboão", state: "SP", postal_code: "00000", maps_url: "https://maps.test", maps_embed_url: "https://embed.test", hours: null, hero_image_path: null };
+    expect(toBusinessSettings(row, (path) => path)).toMatchObject({ shortName: "NP", address: { line: "Rua 1" }, hours: null, heroImageUrl: null });
   });
 
   it("maps explicitly typed business hours", () => {
     const row = { ...({} as BusinessSettingsRow), hours: { segunda: "09:00-18:00" } };
-    expect(toBusinessSettings({ ...row, ...{ id: "b", name: "n", short_name: "n", phone: "p", phone_raw: "p", whatsapp: "w", whatsapp_raw: "w", instagram_handle: "i", instagram_url: "u", address_line: "a", district: "d", city: "c", state: "s", postal_code: "z", maps_url: "m", maps_embed_url: "e" } }).hours).toEqual({ segunda: "09:00-18:00" });
+    expect(toBusinessSettings({ ...row, ...{ id: "b", name: "n", short_name: "n", phone: "p", phone_raw: "p", whatsapp: "w", whatsapp_raw: "w", instagram_handle: "i", instagram_url: "u", address_line: "a", district: "d", city: "c", state: "s", postal_code: "z", maps_url: "m", maps_embed_url: "e", hero_image_path: "hero/10000000-0000-4000-8000-000000000001.webp" } }, (path) => `https://assets.test/${path}`)).toMatchObject({ hours: { segunda: "09:00-18:00" }, heroImageUrl: "https://assets.test/hero/10000000-0000-4000-8000-000000000001.webp" });
   });
 
   it("maps categories", () => expect(toCategory(categoryRow)).toEqual({ id: "category", name: "Rações", slug: "racoes", sortOrder: 2 }));

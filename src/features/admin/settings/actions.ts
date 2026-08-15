@@ -1,11 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { updateBusinessSettings } from "@/data/repositories/business.repository";
+import { getBusinessSettingsForAdmin, updateBusinessSettings, updateHeroImagePath } from "@/data/repositories/business.repository";
+import { RepositoryError } from "@/data/repositories/shared";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/features/admin/auth/server";
 import type { AdminActionResult } from "@/features/admin/mutations/types";
 import { validateBusinessSettings } from "./validation";
+import { HERO_PATH_PATTERN, removeHeroImageFile, verifyHeroUpload } from "@/lib/storage/admin-site-assets";
+
+const refreshHero = () => { revalidatePath("/"); revalidatePath("/admin"); revalidatePath("/admin/settings"); };
+const logSettingsFailure = (operation: string, error: unknown) => console.error("Falha em mutação de configurações.", { entity: error instanceof RepositoryError ? error.entity : "business_settings", operation, code: error instanceof RepositoryError ? error.infrastructureCode : undefined, name: error instanceof Error ? error.name : "unknown" });
 
 export async function updateBusinessSettingsAction(id: string, _previous: AdminActionResult, data: FormData): Promise<AdminActionResult> {
   await requireAdmin();
@@ -20,4 +25,34 @@ export async function updateBusinessSettingsAction(id: string, _previous: AdminA
     console.error("Falha ao atualizar os dados da empresa.", error instanceof Error ? { name: error.name } : undefined);
     return { ok: false, message: "Não foi possível salvar os dados. Tente novamente." };
   }
+}
+
+async function cleanupNewHero(client: Awaited<ReturnType<typeof createClient>>, path: string) { try { await removeHeroImageFile(client, path); } catch (error) { logSettingsFailure("cleanup_new_hero", error); } }
+export async function replaceHeroImageAction(id: string, newPath: string): Promise<AdminActionResult> {
+  await requireAdmin();
+  if (!HERO_PATH_PATTERN.test(newPath)) return { ok: false, message: "Imagem principal inválida." };
+  const client = await createClient();
+  try {
+    const current = await getBusinessSettingsForAdmin(client);
+    if (!current || current.id !== id) { await cleanupNewHero(client, newPath); return { ok: false, message: "Configurações não encontradas." }; }
+    await verifyHeroUpload(client, newPath);
+    try { await updateHeroImagePath(client, id, newPath); } catch (error) { await cleanupNewHero(client, newPath); throw error; }
+    if (current.hero_image_path) try { await removeHeroImageFile(client, current.hero_image_path); } catch (error) { logSettingsFailure("cleanup_old_hero", error); }
+    refreshHero();
+    return { ok: true, message: "Imagem principal atualizada." };
+  } catch (error) { logSettingsFailure("replace_hero", error); return { ok: false, message: "Não foi possível atualizar a imagem principal." }; }
+}
+
+export async function removeHeroImageAction(id: string): Promise<AdminActionResult> {
+  await requireAdmin();
+  const client = await createClient();
+  try {
+    const current = await getBusinessSettingsForAdmin(client);
+    if (!current || current.id !== id) return { ok: false, message: "Configurações não encontradas." };
+    if (!current.hero_image_path) return { ok: true, message: "A imagem padrão já está em uso." };
+    await updateHeroImagePath(client, id, null);
+    try { await removeHeroImageFile(client, current.hero_image_path); } catch (error) { logSettingsFailure("cleanup_removed_hero", error); }
+    refreshHero();
+    return { ok: true, message: "Imagem padrão restaurada." };
+  } catch (error) { logSettingsFailure("remove_hero", error); return { ok: false, message: "Não foi possível restaurar a imagem padrão." }; }
 }

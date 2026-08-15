@@ -4,7 +4,7 @@ import { products } from "@/data/products";
 import { services, serviceOptions } from "@/data/services";
 import type { BusinessSettings, Category, Faq, Product, Service } from "@/types/domain";
 
-export const fallbackBusiness: BusinessSettings = { id: "local-business", name: business.name, shortName: business.shortName, phone: business.phone, phoneRaw: business.phoneRaw, whatsapp: business.whatsapp, whatsappRaw: business.whatsappRaw, instagram: { handle: business.instagram, url: business.instagramUrl }, address: { line: business.address.street, district: business.address.district, city: business.address.city, state: business.address.state, postalCode: business.address.zip }, maps: { url: business.mapsUrl, embedUrl: business.mapsEmbed }, hours: business.hours };
+export const fallbackBusiness: BusinessSettings = { id: "local-business", name: business.name, shortName: business.shortName, phone: business.phone, phoneRaw: business.phoneRaw, whatsapp: business.whatsapp, whatsappRaw: business.whatsappRaw, instagram: { handle: business.instagram, url: business.instagramUrl }, address: { line: business.address.street, district: business.address.district, city: business.address.city, state: business.address.state, postalCode: business.address.zip }, maps: { url: business.mapsUrl, embedUrl: business.mapsEmbed }, hours: business.hours, heroImagePath: null, heroImageUrl: null };
 
 export const fallbackCategories: Category[] = Array.from(new Set(products.map((product) => product.category))).map((name, sortOrder) => ({ id: `local-category-${sortOrder}`, name, slug: name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-"), sortOrder }));
 

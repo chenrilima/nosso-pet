@@ -10,6 +10,8 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub', '90000000-0000-4000-8000-000000000001', true);
 insert into public.products (id, category_id, name, slug, description, price, sort_order) values ('91000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000001', 'Produto integração', 'produto-integracao', 'temporário', 129.90, 9);
 update public.products set name = 'Produto integração editado', is_active = false, is_featured = true where id = '91000000-0000-4000-8000-000000000001';
+update public.products set image_path = 'products/91000000-0000-4000-8000-000000000001.webp' where id = '91000000-0000-4000-8000-000000000001';
+update public.products set image_path = null where id = '91000000-0000-4000-8000-000000000001';
 update public.products set is_active = true where id = '91000000-0000-4000-8000-000000000001';
 delete from public.products where id = '91000000-0000-4000-8000-000000000001';
 
@@ -34,6 +36,10 @@ begin
   begin
     delete from public.products where id = '30000000-0000-4000-8000-000000000001';
     if found then raise exception 'RLS negativa falhou para products delete'; end if;
+  end;
+  begin
+    update public.products set image_path = 'products/blocked.webp' where id = '30000000-0000-4000-8000-000000000001';
+    if found then raise exception 'RLS negativa falhou para products image_path update'; end if;
   end;
 end $$;
 
