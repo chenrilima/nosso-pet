@@ -6,9 +6,9 @@ import { LayoutDashboard, Package, Tags, Scissors, Images, CircleHelp, Building2
 
 const items = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin", enabled: true },
-  { label: "Produtos", icon: Package },
+  { label: "Produtos", icon: Package, href: "/admin/products", enabled: true },
   { label: "Categorias", icon: Tags, href: "/admin/categories", enabled: true },
-  { label: "Serviços", icon: Scissors },
+  { label: "Serviços", icon: Scissors, href: "/admin/services", enabled: true },
   { label: "Galeria", icon: Images },
   { label: "FAQ", icon: CircleHelp },
   { label: "Empresa", icon: Building2, href: "/admin/settings", enabled: true },

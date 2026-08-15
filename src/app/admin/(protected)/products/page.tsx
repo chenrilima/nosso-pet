@@ -1,0 +1,9 @@
+import { listAdminCategories } from "@/data/repositories/categories.repository";
+import { listAdminProducts } from "@/data/repositories/products.repository";
+import { requireAdmin } from "@/features/admin/auth/server";
+import { NewProductForm, ProductCard } from "@/features/admin/products/product-forms";
+import { getPublicSiteAssetUrl } from "@/lib/storage/site-assets";
+import { createClient } from "@/lib/supabase/server";
+
+export const dynamic = "force-dynamic";
+export default async function AdminProductsPage() { await requireAdmin(); const client = await createClient(); const [products, categories] = await Promise.all([listAdminProducts(client), listAdminCategories(client)]); return <><header className="mb-8"><p className="eyebrow">Conteúdo</p><div className="mt-2 flex flex-wrap items-end justify-between gap-4"><div><h1 className="text-3xl font-black text-olive sm:text-4xl">Produtos</h1><p className="mt-2 font-semibold text-stone-600">Gerencie catálogo, preços, destaque e ordem.</p></div><a className="btn btn-primary" href="#novo-produto">Novo produto</a></div></header><NewProductForm categories={categories} />{products.length ? <section aria-label="Produtos cadastrados" className="space-y-4">{products.map((product) => <ProductCard key={product.id} product={product} categories={categories} imageUrl={product.image_path ? getPublicSiteAssetUrl(client, product.image_path) : null} />)}</section> : <section className="rounded-2xl border border-dashed border-stone-300 bg-white p-8 text-center"><h2 className="text-xl font-black text-olive">Nenhum produto cadastrado.</h2><p className="mt-2 font-semibold text-stone-600">Use o formulário acima para criar o primeiro produto.</p><a href="#novo-produto" className="btn btn-primary mt-4">Novo produto</a></section>}</>; }

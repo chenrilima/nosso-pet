@@ -7,7 +7,7 @@ O fluxo de leitura é `Supabase → repositories → queries → adapters → mo
 
 A rota `/` usa ISR com revalidação de 60 segundos. Em produção, uma alteração editorial aparece após a primeira visita posterior ao intervalo de revalidação; enquanto a atualização é calculada, o Next pode servir a versão anterior. A leitura pública usa somente a Publishable Key e as policies RLS. O painel invalida a rota imediatamente com `revalidatePath("/")` após uma gravação editorial bem-sucedida.
 
-O painel permite editar o registro único de empresa em `/admin/settings` e gerenciar categorias em `/admin/categories`. Todas as mutações usam Server Actions, repetem a autorização de administrador, validam e limitam os campos aceitos, gravam com a sessão SSR sujeita a RLS e retornam apenas feedback seguro.
+O painel permite editar o registro único de empresa em `/admin/settings` e gerenciar categorias, produtos e serviços em `/admin/categories`, `/admin/products` e `/admin/services`. Todas as mutações usam Server Actions, repetem a autorização de administrador, validam e limitam os campos aceitos, gravam com a sessão SSR sujeita a RLS e retornam apenas feedback seguro. Imagens existentes de produtos e serviços são preservadas; upload e substituição ficam para a etapa de Storage.
 
 Telefone e WhatsApp são editados no formato legível brasileiro com DDD. No servidor, a pontuação é removida; `phone_raw` preserva DDD + número e `whatsapp_raw` usa `55` + DDD + número, aceitando entrada com ou sem `+55` sem duplicá-lo. Horários são editados por dia, como aberto/fechado e intervalo, e persistidos em JSONB como `HH:mm-HH:mm` ou `closed`; JSON cru nunca é aceito pelo formulário.
 
