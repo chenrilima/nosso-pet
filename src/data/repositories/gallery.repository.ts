@@ -1,8 +1,8 @@
-import type { GalleryImage } from "@/types/domain";
+import type { Database } from "@/types/database";
 import { repositoryError, type DatabaseClient } from "./shared";
-
-export async function listPublishedGalleryImages(client: DatabaseClient): Promise<GalleryImage[]> {
-  const { data, error } = await client.from("gallery_images").select("id,storage_path,alt_text,caption,sort_order").eq("is_published", true).order("sort_order");
-  if (error) throw repositoryError("a galeria", error.message);
-  return data.map((row) => ({ id: row.id, storagePath: row.storage_path, altText: row.alt_text, caption: row.caption, sortOrder: row.sort_order }));
+export type GalleryImageRow = Database["public"]["Tables"]["gallery_images"]["Row"];
+export async function listPublishedGalleryImageRows(client: DatabaseClient): Promise<GalleryImageRow[]> {
+  const { data, error } = await client.from("gallery_images").select("*").eq("is_published", true).order("sort_order").order("alt_text");
+  if (error) throw repositoryError("gallery_images", error);
+  return data;
 }

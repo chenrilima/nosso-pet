@@ -1,7 +1,9 @@
 # nosso-pet
 # Nosso Pet Banho e Tosa
 
-Site público em Next.js 16 com uma fundação Supabase versionada. Nesta etapa, a home continua usando os dados locais em `src/config` e `src/data`; os repositories ainda não estão conectados à interface.
+Site público em Next.js 16 com uma fundação Supabase versionada. A camada pública de leitura está preparada em `src/data/queries`, mas a home continua usando os dados locais em `src/config` e `src/data`; a migração da interface fica para a Etapa 4.
+
+O fluxo de leitura é `Supabase → repositories → queries → adapters → modelos de domínio`. A agregação `getPublicSiteDataWithFallback()` aplica fallback local por recurso, diferencia respostas vazias de falhas e informa a origem de cada conjunto de dados. Os modelos remotos usam o UUID do banco em `id` e preservam `slug` como identidade estável de domínio. Durante a transição, os produtos de fallback mantêm seus IDs locais; a sacola só será adaptada quando a home for migrada.
 
 ## Desenvolvimento local
 
