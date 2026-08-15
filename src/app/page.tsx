@@ -18,6 +18,7 @@ import { Footer } from "@/components/Footer";
 import { fallbackBusiness } from "@/data/fallbacks/public-site.fallback";
 import { getPublicSiteDataWithFallback } from "@/data/queries/public-site.query";
 import { galleryForPresentation } from "@/lib/gallery-presentation";
+import { presentBusinessHours } from "@/lib/business-hours";
 import { resolveServiceIcon } from "@/lib/service-icons";
 import { whatsappUrl } from "@/lib/whatsapp";
 
@@ -28,6 +29,7 @@ export default async function Home() {
   const { data } = await getPublicSiteDataWithFallback();
   const business = data.business ?? fallbackBusiness;
   const gallery = galleryForPresentation(data.gallery);
+  const businessHours = presentBusinessHours(business.hours);
 
   return (
     <>
@@ -246,9 +248,20 @@ export default async function Home() {
               </div>
               <div className="mt-7 rounded-2xl bg-cream p-5">
                 <b>Horários de funcionamento</b>
-                <p className="mt-1 text-sm text-gray-600">
-                  Consulte o funcionamento e a disponibilidade pelo WhatsApp.
-                </p>
+                {businessHours ? (
+                  <dl className="mt-3 space-y-1 text-sm text-gray-600">
+                    {businessHours.map(({ day, label, value }) => (
+                      <div key={day} className="flex justify-between gap-4">
+                        <dt>{label}</dt>
+                        <dd className="font-semibold text-gray-700">{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : (
+                  <p className="mt-1 text-sm text-gray-600">
+                    Consulte o funcionamento e a disponibilidade pelo WhatsApp.
+                  </p>
+                )}
               </div>
             </div>
             <iframe

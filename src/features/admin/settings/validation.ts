@@ -1,9 +1,6 @@
 import type { BusinessSettingsUpdate } from "@/data/repositories/business.repository";
-
-export const BUSINESS_DAYS = [
-  ["monday", "Segunda-feira"], ["tuesday", "Terça-feira"], ["wednesday", "Quarta-feira"],
-  ["thursday", "Quinta-feira"], ["friday", "Sexta-feira"], ["saturday", "Sábado"], ["sunday", "Domingo"],
-] as const;
+import { BUSINESS_DAYS } from "@/lib/business-hours";
+export { BUSINESS_DAYS } from "@/lib/business-hours";
 
 const text = (data: FormData, key: string) => String(data.get(key) ?? "").trim();
 const required = (errors: Record<string, string>, key: string, value: string, max: number) => {
