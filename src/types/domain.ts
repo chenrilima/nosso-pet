@@ -1,10 +1,11 @@
 export type BusinessHours = Readonly<Record<string, string>>;
-export type BusinessSettings = { id: string; name: string; shortName: string; phone: string; phoneRaw: string; whatsapp: string; whatsappRaw: string; instagram: { handle: string; url: string }; address: { line: string; district: string; city: string; state: string; postalCode: string }; maps: { url: string; embedUrl: string }; hours: BusinessHours | null; heroImagePath: string | null; heroImageUrl: string | null };
+import type { ImagePosition } from "@/lib/image-position";
+export type BusinessSettings = { id: string; name: string; shortName: string; phone: string; phoneRaw: string; whatsapp: string; whatsappRaw: string; instagram: { handle: string; url: string }; address: { line: string; district: string; city: string; state: string; postalCode: string }; maps: { url: string; embedUrl: string }; hours: BusinessHours | null; heroImagePath: string | null; heroImageUrl: string | null; heroImagePosition: ImagePosition };
 export type Category = { id: string; name: string; slug: string; sortOrder: number };
-export type Product = { id: string; slug: string; name: string; description: string; category: Category; price: number | null; imageUrl: string | null; isFeatured: boolean; sortOrder: number };
+export type Product = { id: string; slug: string; name: string; description: string; category: Category; price: number | null; imageUrl: string | null; imagePosition: ImagePosition; isFeatured: boolean; sortOrder: number };
 export type PricingType = "fixed" | "starting_at" | "quote";
 export type ServiceIconKey = "bath" | "scissors" | "sparkles" | "shield_check" | "droplets" | "paw_print" | "car" | "stethoscope" | (string & {});
 export type Service = { id: string; name: string; slug: string; description: string; iconKey: ServiceIconKey; imageUrl: string | null; pricingType: PricingType; price: number | null; priceFrom: number | null; durationMinutes: number | null; isBookable: boolean; isFeatured: boolean; sortOrder: number };
-export type GalleryImage = { id: string; imageUrl: string; altText: string; caption: string | null; sortOrder: number };
+export type GalleryImage = { id: string; imageUrl: string; altText: string; caption: string | null; sortOrder: number; imagePosition: ImagePosition };
 export type Faq = { id: string; question: string; answer: string; sortOrder: number };
 export type PublicSiteData = { business: BusinessSettings | null; categories: Category[]; products: Product[]; services: Service[]; bookableServices: Service[]; gallery: GalleryImage[]; faqs: Faq[] };

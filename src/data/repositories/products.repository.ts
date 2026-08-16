@@ -28,7 +28,11 @@ export async function updateProduct(client: DatabaseClient, id: string, values: 
   if (error) throw repositoryWriteError("products", error);
 }
 export async function updateProductImagePath(client: DatabaseClient, id: string, imagePath: string | null): Promise<void> {
-  const { error } = await client.from("products").update({ image_path: imagePath }).eq("id", id);
+  const { error } = await client.from("products").update({ image_path: imagePath, image_position_x: 50, image_position_y: 50 }).eq("id", id);
+  if (error) throw repositoryWriteError("products", error);
+}
+export async function updateProductImagePosition(client: DatabaseClient, id: string, x: number, y: number): Promise<void> {
+  const { error } = await client.from("products").update({ image_position_x: x, image_position_y: y }).eq("id", id);
   if (error) throw repositoryWriteError("products", error);
 }
 export async function toggleProduct(client: DatabaseClient, id: string, isActive: boolean): Promise<void> {

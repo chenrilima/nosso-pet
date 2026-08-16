@@ -22,6 +22,7 @@ import { presentBusinessHours } from "@/lib/business-hours";
 import { presentServicePrice } from "@/lib/pricing";
 import { resolveServiceIcon } from "@/lib/service-icons";
 import { whatsappUrl } from "@/lib/whatsapp";
+import { imageObjectPosition } from "@/lib/image-position";
 
 export const dynamic = "force-static";
 export const revalidate = 60;
@@ -85,6 +86,7 @@ export default async function Home() {
                 height={1086}
                 alt="Cães bem cuidados em ambiente de banho e tosa"
                 className="relative aspect-[4/3] rounded-[2.5rem] object-cover shadow-soft"
+                style={{ objectPosition: imageObjectPosition(business.heroImagePosition) }}
               />
             </div>
           </div>
@@ -159,6 +161,7 @@ export default async function Home() {
                     width={900}
                     height={700}
                     className={`h-full w-full object-cover transition duration-500 hover:scale-105 ${image.objectPosition ?? ""}`}
+                    style={image.imagePosition ? { objectPosition: imageObjectPosition(image.imagePosition) } : undefined}
                   />
                 </div>
               ))}

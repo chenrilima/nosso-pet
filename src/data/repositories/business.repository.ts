@@ -15,6 +15,10 @@ export async function updateBusinessSettings(client: DatabaseClient, id: string,
   if (error) throw repositoryWriteError("business_settings", error);
 }
 export async function updateHeroImagePath(client: DatabaseClient, id: string, heroImagePath: string | null): Promise<void> {
-  const { error } = await client.from("business_settings").update({ hero_image_path: heroImagePath }).eq("id", id);
+  const { error } = await client.from("business_settings").update({ hero_image_path: heroImagePath, hero_position_x: 50, hero_position_y: 50 }).eq("id", id);
+  if (error) throw repositoryWriteError("business_settings", error);
+}
+export async function updateHeroImagePosition(client: DatabaseClient, id: string, x: number, y: number): Promise<void> {
+  const { error } = await client.from("business_settings").update({ hero_position_x: x, hero_position_y: y }).eq("id", id);
   if (error) throw repositoryWriteError("business_settings", error);
 }

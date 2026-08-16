@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { listAdminCategories } from "@/data/repositories/categories.repository";
-import { createProduct, deleteProduct, getAdminProduct, toggleProduct, updateProduct, updateProductImagePath } from "@/data/repositories/products.repository";
+import { createProduct, deleteProduct, getAdminProduct, toggleProduct, updateProduct, updateProductImagePath, updateProductImagePosition } from "@/data/repositories/products.repository";
+import { parseImagePosition } from "@/lib/image-position";
 import { RepositoryError } from "@/data/repositories/shared";
 import { requireAdmin } from "@/features/admin/auth/server";
 import type { AdminActionResult } from "@/features/admin/mutations/types";
@@ -76,4 +77,8 @@ export async function removeProductImageAction(id: string): Promise<AdminActionR
     try { await removeProductImageFile(client, current.image_path); } catch (error) { console.error("Arquivo órfão de produto requer limpeza.", { name: error instanceof Error ? error.name : "unknown" }); }
     refresh(); return { ok: true, message: "Imagem removida; o card voltou ao placeholder." };
   } catch (error) { return failure(error); }
+}
+export async function updateProductImagePositionAction(id: string, x: number, y: number): Promise<AdminActionResult> {
+  await requireAdmin(); if (!UUID_PATTERN.test(id)) return { ok: false, message: "Produto inválido." }; const position = parseImagePosition(x, y); if (!position) return { ok: false, message: "Posição inválida. Use valores inteiros entre 0 e 100." };
+  const client = await createClient(); try { const current = await getAdminProduct(client, id); if (!current?.image_path) return { ok: false, message: "Imagem do produto não encontrada." }; await updateProductImagePosition(client, id, position.x, position.y); refresh(); return { ok: true, message: "Enquadramento salvo." }; } catch (error) { return failure(error); }
 }

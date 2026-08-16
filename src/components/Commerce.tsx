@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { imageObjectPosition } from "@/lib/image-position";
 import { useState } from "react";
 import { Car, Minus, Plus, Send, ShoppingBag, Trash2 } from "lucide-react";
 import { cartMessage, taxiMessage, whatsappUrl } from "@/lib/whatsapp";
@@ -162,6 +163,7 @@ export function Products({
                     width={320}
                     height={128}
                     className="h-32 w-full object-cover"
+                    style={{ objectPosition: imageObjectPosition(p.imagePosition) }}
                   />
                 ) : (
                   <ShoppingBag className="text-olive/50" size={46} />

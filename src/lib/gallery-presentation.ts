@@ -1,10 +1,12 @@
 import type { GalleryImage } from "@/types/domain";
+import type { ImagePosition } from "./image-position";
 
 export type GalleryPresentationImage = {
   id: string;
   imageUrl: string;
   altText: string;
   objectPosition?: string;
+  imagePosition?: ImagePosition;
 };
 
 const localGallery: GalleryPresentationImage[] = [
@@ -24,6 +26,6 @@ export function galleryForPresentation(
   images: GalleryImage[],
 ): GalleryPresentationImage[] {
   return images.length > 0
-    ? images.map(({ id, imageUrl, altText }) => ({ id, imageUrl, altText }))
+    ? images.map(({ id, imageUrl, altText, imagePosition }) => ({ id, imageUrl, altText, imagePosition }))
     : localGallery;
 }

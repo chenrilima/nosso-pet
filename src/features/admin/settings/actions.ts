@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getBusinessSettingsForAdmin, updateBusinessSettings, updateHeroImagePath } from "@/data/repositories/business.repository";
+import { getBusinessSettingsForAdmin, updateBusinessSettings, updateHeroImagePath, updateHeroImagePosition } from "@/data/repositories/business.repository";
+import { parseImagePosition } from "@/lib/image-position";
 import { RepositoryError } from "@/data/repositories/shared";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/features/admin/auth/server";
@@ -55,4 +56,9 @@ export async function removeHeroImageAction(id: string): Promise<AdminActionResu
     refreshHero();
     return { ok: true, message: "Imagem padrão restaurada." };
   } catch (error) { logSettingsFailure("remove_hero", error); return { ok: false, message: "Não foi possível restaurar a imagem padrão." }; }
+}
+
+export async function updateHeroImagePositionAction(id: string, x: number, y: number): Promise<AdminActionResult> {
+  await requireAdmin(); const position = parseImagePosition(x, y); if (!position) return { ok: false, message: "Posição inválida. Use valores inteiros entre 0 e 100." };
+  const client = await createClient(); try { const current = await getBusinessSettingsForAdmin(client); if (!current || current.id !== id || !current.hero_image_path) return { ok: false, message: "Imagem principal não encontrada." }; await updateHeroImagePosition(client, id, position.x, position.y); refreshHero(); return { ok: true, message: "Enquadramento salvo." }; } catch (error) { logSettingsFailure("position_hero", error); return { ok: false, message: "Não foi possível salvar o enquadramento." }; }
 }

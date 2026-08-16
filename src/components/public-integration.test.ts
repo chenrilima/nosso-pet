@@ -28,6 +28,7 @@ const product: Product = {
   category: { id: "category", name: "Rações", slug: "racoes", sortOrder: 0 },
   price: null,
   imageUrl: null,
+  imagePosition: { x: 50, y: 50 },
   isFeatured: false,
   sortOrder: 0,
 };
@@ -41,16 +42,46 @@ describe("public component data contracts", () => {
   it("uses a product UUID through add, increment, decrement and remove", () => {
     const added = addCartItem([], product);
     const incremented = addCartItem(added, product);
-    expect(incremented[0]).toMatchObject({ id: product.id, slug: "racao", quantity: 2 });
+    expect(incremented[0]).toMatchObject({
+      id: product.id,
+      slug: "racao",
+      quantity: 2,
+    });
     expect(setCartQuantity(incremented, product.id, 1)[0].quantity).toBe(1);
     expect(setCartQuantity(incremented, product.id, 0)).toEqual([]);
   });
 
   it("uses remote gallery images and preserves the temporary local gallery when empty", () => {
-    const remote: GalleryImage[] = [{ id: "photo", imageUrl: "https://example.com/photo.webp", altText: "Pet", caption: null, sortOrder: 0 }];
-    expect(galleryForPresentation(remote)).toEqual([{ id: "photo", imageUrl: "https://example.com/photo.webp", altText: "Pet" }]);
-    expect(galleryForPresentation([...remote, { ...remote[0], id: "photo-2" }, { ...remote[0], id: "photo-3" }, { ...remote[0], id: "photo-4" }, { ...remote[0], id: "photo-5" }])).toHaveLength(5);
+    const remote: GalleryImage[] = [
+      {
+        id: "photo",
+        imageUrl: "https://example.com/photo.webp",
+        imagePosition: { x: 50, y: 50 },
+        altText: "Pet",
+        caption: null,
+        sortOrder: 0,
+      },
+    ];
+    expect(galleryForPresentation(remote)).toEqual([
+      {
+        id: "photo",
+        imageUrl: "https://example.com/photo.webp",
+        altText: "Pet",
+        imagePosition: { x: 50, y: 50 },
+      },
+    ]);
+    expect(
+      galleryForPresentation([
+        ...remote,
+        { ...remote[0], id: "photo-2" },
+        { ...remote[0], id: "photo-3" },
+        { ...remote[0], id: "photo-4" },
+        { ...remote[0], id: "photo-5" },
+      ]),
+    ).toHaveLength(5);
     expect(galleryForPresentation([])).toHaveLength(4);
-    expect(galleryForPresentation([])[0].imageUrl).toBe("/images/hero-pets.png");
+    expect(galleryForPresentation([])[0].imageUrl).toBe(
+      "/images/hero-pets.png",
+    );
   });
 });

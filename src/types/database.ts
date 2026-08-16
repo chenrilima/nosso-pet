@@ -41,6 +41,8 @@ export type Database = {
           created_at: string
           district: string
           hero_image_path: string | null
+          hero_position_x: number
+          hero_position_y: number
           hours: Json | null
           id: string
           instagram_handle: string
@@ -64,6 +66,8 @@ export type Database = {
           created_at?: string
           district: string
           hero_image_path?: string | null
+          hero_position_x?: number
+          hero_position_y?: number
           hours?: Json | null
           id?: string
           instagram_handle: string
@@ -87,6 +91,8 @@ export type Database = {
           created_at?: string
           district?: string
           hero_image_path?: string | null
+          hero_position_x?: number
+          hero_position_y?: number
           hours?: Json | null
           id?: string
           instagram_handle?: string
@@ -173,6 +179,8 @@ export type Database = {
           created_at: string
           id: string
           is_published: boolean
+          position_x: number
+          position_y: number
           sort_order: number
           storage_path: string
           updated_at: string
@@ -183,6 +191,8 @@ export type Database = {
           created_at?: string
           id?: string
           is_published?: boolean
+          position_x?: number
+          position_y?: number
           sort_order?: number
           storage_path: string
           updated_at?: string
@@ -193,6 +203,8 @@ export type Database = {
           created_at?: string
           id?: string
           is_published?: boolean
+          position_x?: number
+          position_y?: number
           sort_order?: number
           storage_path?: string
           updated_at?: string
@@ -206,6 +218,8 @@ export type Database = {
           description: string
           id: string
           image_path: string | null
+          image_position_x: number
+          image_position_y: number
           is_active: boolean
           is_featured: boolean
           name: string
@@ -220,6 +234,8 @@ export type Database = {
           description: string
           id?: string
           image_path?: string | null
+          image_position_x?: number
+          image_position_y?: number
           is_active?: boolean
           is_featured?: boolean
           name: string
@@ -234,6 +250,8 @@ export type Database = {
           description?: string
           id?: string
           image_path?: string | null
+          image_position_x?: number
+          image_position_y?: number
           is_active?: boolean
           is_featured?: boolean
           name?: string
