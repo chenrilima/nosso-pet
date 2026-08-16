@@ -8,14 +8,14 @@ import { requireAdmin } from "@/features/admin/auth/server";
 import type { AdminActionResult } from "@/features/admin/mutations/types";
 import { createClient } from "@/lib/supabase/server";
 import { UUID_PATTERN, validateProduct } from "./validation";
-import { PRODUCT_PATH_PATTERN, removeProductImageFile, verifyProductUpload } from "@/lib/storage/admin-site-assets";
+import { PRODUCT_PATH_PATTERN, removeProductImageFile, uploadedImageDiagnostic, uploadedImageErrorMessage, verifyProductUpload } from "@/lib/storage/admin-site-assets";
 
 const refresh = () => { revalidatePath("/"); revalidatePath("/admin/products"); revalidatePath("/admin"); };
 function failure(error: unknown): AdminActionResult {
   if (error instanceof RepositoryError && error.infrastructureCode === "23505") return { ok: false, message: "Já existe um produto com esse slug.", fieldErrors: { slug: "Escolha outro slug." } };
   if (error instanceof RepositoryError && error.infrastructureCode === "23503") return { ok: false, message: "A categoria selecionada não está disponível.", fieldErrors: { categoryId: "Selecione outra categoria." } };
-  console.error("Falha em mutação de produto.", { entity: error instanceof RepositoryError ? error.entity : "products", operation: error instanceof RepositoryError ? error.operation : "mutation", code: error instanceof RepositoryError ? error.infrastructureCode : undefined, name: error instanceof Error ? error.name : "unknown" });
-  return { ok: false, message: "Não foi possível salvar. Tente novamente." };
+  console.error("Falha em mutação de produto.", { entity: error instanceof RepositoryError ? error.entity : "products", operation: error instanceof RepositoryError ? error.operation : "mutation", code: error instanceof RepositoryError ? error.infrastructureCode : undefined, name: error instanceof Error ? error.name : "unknown", ...uploadedImageDiagnostic(error) });
+  return { ok: false, message: uploadedImageErrorMessage(error) ?? "Não foi possível salvar. Tente novamente." };
 }
 async function categoryAvailable(client: Awaited<ReturnType<typeof createClient>>, categoryId: string, currentCategoryId?: string) { return (await listAdminCategories(client)).some((category) => category.id === categoryId && (category.is_active || category.id === currentCategoryId)); }
 

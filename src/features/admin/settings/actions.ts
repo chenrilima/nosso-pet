@@ -7,10 +7,10 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/features/admin/auth/server";
 import type { AdminActionResult } from "@/features/admin/mutations/types";
 import { validateBusinessSettings } from "./validation";
-import { HERO_PATH_PATTERN, removeHeroImageFile, verifyHeroUpload } from "@/lib/storage/admin-site-assets";
+import { HERO_PATH_PATTERN, removeHeroImageFile, uploadedImageDiagnostic, uploadedImageErrorMessage, verifyHeroUpload } from "@/lib/storage/admin-site-assets";
 
 const refreshHero = () => { revalidatePath("/"); revalidatePath("/admin"); revalidatePath("/admin/settings"); };
-const logSettingsFailure = (operation: string, error: unknown) => console.error("Falha em mutação de configurações.", { entity: error instanceof RepositoryError ? error.entity : "business_settings", operation, code: error instanceof RepositoryError ? error.infrastructureCode : undefined, name: error instanceof Error ? error.name : "unknown" });
+const logSettingsFailure = (operation: string, error: unknown) => console.error("Falha em mutação de configurações.", { entity: error instanceof RepositoryError ? error.entity : "business_settings", operation, code: error instanceof RepositoryError ? error.infrastructureCode : undefined, name: error instanceof Error ? error.name : "unknown", ...uploadedImageDiagnostic(error) });
 
 export async function updateBusinessSettingsAction(id: string, _previous: AdminActionResult, data: FormData): Promise<AdminActionResult> {
   await requireAdmin();
@@ -40,7 +40,7 @@ export async function replaceHeroImageAction(id: string, newPath: string): Promi
     if (current.hero_image_path) try { await removeHeroImageFile(client, current.hero_image_path); } catch (error) { logSettingsFailure("cleanup_old_hero", error); }
     refreshHero();
     return { ok: true, message: "Imagem principal atualizada." };
-  } catch (error) { logSettingsFailure("replace_hero", error); return { ok: false, message: "Não foi possível atualizar a imagem principal." }; }
+  } catch (error) { logSettingsFailure("replace_hero", error); return { ok: false, message: uploadedImageErrorMessage(error) ?? "Não foi possível atualizar a imagem principal." }; }
 }
 
 export async function removeHeroImageAction(id: string): Promise<AdminActionResult> {

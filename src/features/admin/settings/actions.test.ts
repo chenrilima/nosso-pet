@@ -5,7 +5,7 @@ vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
 vi.mock("@/features/admin/auth/server", () => ({ requireAdmin: mocks.requireAdmin }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: mocks.createClient }));
 vi.mock("@/data/repositories/business.repository", () => ({ updateBusinessSettings: mocks.updateBusinessSettings, updateHeroImagePath: mocks.updateHeroImagePath, getBusinessSettingsForAdmin: mocks.getBusinessSettingsForAdmin }));
-vi.mock("@/lib/storage/admin-site-assets", () => ({ HERO_PATH_PATTERN: /^hero\/[0-9a-f-]+\.(?:webp|png)$/i, verifyHeroUpload: mocks.verifyHeroUpload, removeHeroImageFile: mocks.removeHeroImageFile }));
+vi.mock("@/lib/storage/admin-site-assets", () => ({ HERO_PATH_PATTERN: /^hero\/[0-9a-f-]+\.(?:webp|png)$/i, verifyHeroUpload: mocks.verifyHeroUpload, removeHeroImageFile: mocks.removeHeroImageFile, uploadedImageDiagnostic: () => ({}), uploadedImageErrorMessage: () => null }));
 import { removeHeroImageAction, replaceHeroImageAction, updateBusinessSettingsAction } from "./actions";
 import { BUSINESS_DAYS } from "./validation";
 
