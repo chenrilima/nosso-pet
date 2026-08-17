@@ -1,11 +1,9 @@
 "use client";
-import Image from "next/image";
-import { imageObjectPosition } from "@/lib/image-position";
-import { useState } from "react";
-import { Car, Minus, Plus, Send, ShoppingBag, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Car, Minus, Plus, Send, ShoppingBag, Trash2, X } from "lucide-react";
 import { cartMessage, taxiMessage, whatsappUrl } from "@/lib/whatsapp";
-import { formatCurrencyBRL } from "@/lib/pricing";
-import type { Product } from "@/types/domain";
+import { addPurchaseIntent, createPurchaseIntent, setPurchaseIntentQuantity, type SelectionValues } from "@/lib/purchase-intents";
+import type { CatalogCategory, PurchaseIntent } from "@/types/domain";
 
 export function TaxiPet({ whatsappRaw }: { whatsappRaw: string }) {
   const [open, setOpen] = useState(false);
@@ -103,37 +101,52 @@ export function TaxiPet({ whatsappRaw }: { whatsappRaw: string }) {
     </section>
   );
 }
-type CartItem = Product & { quantity: number };
-export const addCartItem = (cart: CartItem[], product: Product): CartItem[] =>
-  cart.some((item) => item.id === product.id)
-    ? cart.map((item) =>
-        item.id === product.id
-          ? { ...item, quantity: item.quantity + 1 }
-          : item,
-      )
-    : [...cart, { ...product, quantity: 1 }];
-
-export const setCartQuantity = (
-  cart: CartItem[],
-  id: string,
-  quantity: number,
-): CartItem[] =>
-  cart
-    .map((item) => (item.id === id ? { ...item, quantity } : item))
-    .filter((item) => item.quantity > 0);
+function CatalogDialog({ category, onClose, onAdd }: { category: CatalogCategory; onClose: () => void; onAdd: (intent: PurchaseIntent) => void }) {
+  const [values, setValues] = useState<SelectionValues>({});
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => event.key === "Escape" && onClose();
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [onClose]);
+  const intent = createPurchaseIntent(category, values);
+  return (
+    <div className="fixed inset-0 z-50 grid items-end bg-black/50 p-0 sm:place-items-center sm:p-5" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <div role="dialog" aria-modal="true" aria-labelledby="catalog-dialog-title" className="max-h-[92dvh] w-full overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl sm:max-w-2xl sm:rounded-3xl sm:p-7">
+        <div className="flex items-start justify-between gap-4">
+          <div><p className="eyebrow">Monte sua consulta</p><h3 id="catalog-dialog-title" className="mt-1 text-2xl font-black text-olive">{category.name}</h3><p className="mt-2 text-sm text-gray-600">Escolha uma opção em cada etapa.</p></div>
+          <button type="button" aria-label="Fechar opções" onClick={onClose} className="rounded-full border border-stone-200 p-2 text-olive"><X size={20} /></button>
+        </div>
+        <div className="mt-6 space-y-6">
+          {category.optionGroups.map((group, index) => (
+            <fieldset key={group.id}>
+              <legend className="font-black text-olive"><span className="mr-2 text-brand">{index + 1}.</span>{group.name}</legend>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {group.options.filter((option) => option.isActive).sort((a, b) => a.sortOrder - b.sortOrder).map((option) => {
+                  const selected = values[group.id] === option.id;
+                  return <label key={option.id} className={`cursor-pointer rounded-full border px-4 py-2 text-sm font-bold transition ${selected ? "border-brand bg-brand text-white" : "border-stone-200 bg-white text-olive hover:border-brand"}`}><input className="sr-only" type="radio" name={group.id} value={option.id} checked={selected} onChange={() => setValues((current) => ({ ...current, [group.id]: option.id }))} />{option.name}</label>;
+                })}
+              </div>
+            </fieldset>
+          ))}
+        </div>
+        <button type="button" disabled={!intent} onClick={() => { if (intent) { onAdd(intent); onClose(); } }} className="btn btn-primary mt-7 w-full disabled:cursor-not-allowed disabled:opacity-40"><Plus size={18} />Adicionar à consulta</button>
+      </div>
+    </div>
+  );
+}
 
 export function Products({
-  products,
+  catalog,
   whatsappRaw,
 }: {
-  products: Product[];
+  catalog: CatalogCategory[];
   whatsappRaw: string;
 }) {
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const add = (product: Product) =>
-    setCart((cart) => addCartItem(cart, product));
+  const [cart, setCart] = useState<PurchaseIntent[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<CatalogCategory | null>(null);
+  const add = (intent: PurchaseIntent) => setCart((current) => addPurchaseIntent(current, intent));
   const qty = (id: string, n: number) =>
-    setCart((cart) => setCartQuantity(cart, id, n));
+    setCart((current) => setPurchaseIntentQuantity(current, id, n));
   return (
     <section id="produtos" className="section">
       <div className="container">
@@ -142,7 +155,7 @@ export function Products({
           <div>
             <h2 className="title mt-2">Produtos para o seu pet</h2>
             <p className="mt-4 text-gray-600">
-              Adicione itens e consulte disponibilidade e valores pelo WhatsApp.
+              Conte o que procura e consulte disponibilidade e valores pelo WhatsApp.
             </p>
           </div>
           <span className="rounded-full bg-orange-50 px-4 py-2 font-black text-brand">
@@ -151,44 +164,14 @@ export function Products({
           </span>
         </div>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
-          {products.map((p, i) => (
-            <article className="card flex flex-col overflow-hidden" key={p.id}>
-              <div
-                className={`grid h-32 place-items-center ${["bg-orange-100", "bg-amber-50", "bg-lime-50", "bg-sky-50", "bg-purple-50"][i]}`}
-              >
-                {p.imageUrl ? (
-                  <Image
-                    src={p.imageUrl}
-                    alt={p.name}
-                    width={320}
-                    height={128}
-                    className="h-32 w-full object-cover"
-                    style={{ objectPosition: imageObjectPosition(p.imagePosition) }}
-                  />
-                ) : (
-                  <ShoppingBag className="text-olive/50" size={46} />
-                )}
-              </div>
+          {catalog.map((category, i) => (
+            <article className="card flex flex-col overflow-hidden" key={category.id}>
+              <div className={`grid h-32 place-items-center ${["bg-orange-100", "bg-amber-50", "bg-lime-50", "bg-sky-50", "bg-purple-50"][i % 5]}`}><ShoppingBag className="text-olive/50" size={46} /></div>
               <div className="flex flex-1 flex-col p-5">
-                <small className="font-black uppercase text-brand">
-                  {p.category.name}
-                </small>
-                <h3 className="mt-2 font-black">{p.name}</h3>
-                <p className="mt-2 flex-1 text-sm text-gray-500">
-                  {p.description}
-                </p>
-                {p.price !== null && (
-                  <p className="mt-3 text-lg font-black text-olive">
-                    {formatCurrencyBRL(p.price)}
-                  </p>
-                )}
-                <button
-                  onClick={() => add(p)}
-                  className="btn btn-secondary mt-5 text-sm"
-                >
-                  <Plus size={16} />
-                  Adicionar
-                </button>
+                <small className="font-black uppercase text-brand">Categoria</small>
+                <h3 className="mt-2 font-black">{category.name}</h3>
+                <p className="mt-2 flex-1 text-sm text-gray-500">{category.description}</p>
+                <button onClick={() => setSelectedCategory(category)} className="btn btn-secondary mt-5 text-sm">Ver opções</button>
               </div>
             </article>
           ))}
@@ -202,7 +185,7 @@ export function Products({
                   className="flex items-center justify-between gap-3 py-3"
                   key={x.id}
                 >
-                  <span className="font-bold">{x.name}</span>
+                  <div><p className="font-bold">{x.categoryName}</p><p className="mt-1 text-sm text-gray-500">{x.selections.map((selection) => selection.optionName).join(" • ")}</p></div>
                   <div className="flex items-center gap-2">
                     <button
                       aria-label="Diminuir"
@@ -234,11 +217,12 @@ export function Products({
               className="btn btn-primary mt-5 w-full"
             >
               <Send size={18} />
-              Solicitar pedido pelo WhatsApp
+              Consultar disponibilidade pelo WhatsApp
             </a>
           </div>
         )}
       </div>
+      {selectedCategory && <CatalogDialog category={selectedCategory} onClose={() => setSelectedCategory(null)} onAdd={add} />}
     </section>
   );
 }

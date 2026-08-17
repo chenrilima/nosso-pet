@@ -21,7 +21,9 @@ describe("WhatsApp message templates", () => {
   });
 
   it("lists multiple cart items and their quantities", () => {
-    expect(cartMessage([{ name: "Ração", quantity: 2 }, { name: "Petisco", quantity: 3 }])).toContain("2x Ração\n3x Petisco");
+    const message = cartMessage([{ id: "one", categoryId: "racoes", categoryName: "Rações", quantity: 2, selections: [{ groupId: "animal", groupName: "Pet", optionId: "caes", optionName: "Cães" }, { groupId: "marca", groupName: "Marca", optionId: "premier", optionName: "Premier" }] }]);
+    expect(message).toContain("2x Rações\n• Pet: Cães\n• Marca: Premier");
+    expect(message).toContain("Forma desejada: Retirada / consultar entrega");
   });
 
   it("uses the configured number and URL-encodes special characters", () => {

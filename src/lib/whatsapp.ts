@@ -1,4 +1,5 @@
 import { business } from "@/config/business";
+import type { PurchaseIntent } from "@/types/domain";
 export type Booking = {
   services: string[];
   name: string;
@@ -18,5 +19,5 @@ export function bookingMessage(b: Booking) {
 }
 export const taxiMessage = (d: Record<string, string>) =>
   `Olá! Gostaria de consultar o TaxiPet.\n\n👤 Nome: ${d.name}\n📍 Bairro: ${d.district}\n🏠 Endereço/CEP: ${d.address}\n🐾 Pet: ${d.pet}\n🛁 Serviço: ${d.service}\n📅 Data desejada: ${d.date.split("-").reverse().join("/")}\n\nPodem confirmar a disponibilidade?`;
-export const cartMessage = (items: { name: string; quantity: number }[]) =>
-  `Olá! Gostaria de consultar estes produtos:\n\n🛒 PEDIDO\n\n${items.map((i) => `${i.quantity}x ${i.name}`).join("\n")}\n\nForma desejada: Retirada / consultar entrega\n\nPode confirmar disponibilidade e valores?`;
+export const cartMessage = (items: PurchaseIntent[]) =>
+  `Olá! Gostaria de consultar estes produtos:\n\n🛒 PEDIDO\n\n${items.map((item) => `${item.quantity}x ${item.categoryName}${item.selections.map((selection) => `\n• ${selection.groupName}: ${selection.optionName}`).join("")}`).join("\n\n")}\n\nForma desejada: Retirada / consultar entrega\n\nPode confirmar disponibilidade e valores?`;

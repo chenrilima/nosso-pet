@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { bookingOptions } from "./Booking";
-import { addCartItem, setCartQuantity } from "./Commerce";
+import { addPurchaseIntent, setPurchaseIntentQuantity } from "@/lib/purchase-intents";
 import { galleryForPresentation } from "@/lib/gallery-presentation";
-import type { GalleryImage, Product, Service } from "@/types/domain";
+import type { GalleryImage, PurchaseIntent, Service } from "@/types/domain";
 
 const service = (name: string): Service => ({
   id: `service-${name}`,
@@ -20,18 +20,7 @@ const service = (name: string): Service => ({
   sortOrder: 0,
 });
 
-const product: Product = {
-  id: "2d1f44aa-4394-45cb-9549-94ab061bbe20",
-  slug: "racao",
-  name: "Ração",
-  description: "Descrição",
-  category: { id: "category", name: "Rações", slug: "racoes", sortOrder: 0 },
-  price: null,
-  imageUrl: null,
-  imagePosition: { x: 50, y: 50 },
-  isFeatured: false,
-  sortOrder: 0,
-};
+const intent: PurchaseIntent = { id: "category|animal:caes", categoryId: "category", categoryName: "Rações", selections: [{ groupId: "animal", groupName: "Pet", optionId: "caes", optionName: "Cães" }], quantity: 1 };
 
 describe("public component data contracts", () => {
   it("uses bookable services and keeps Other as a presentation option", () => {
@@ -39,16 +28,15 @@ describe("public component data contracts", () => {
     expect(bookingOptions([])).toEqual(["Outro"]);
   });
 
-  it("uses a product UUID through add, increment, decrement and remove", () => {
-    const added = addCartItem([], product);
-    const incremented = addCartItem(added, product);
+  it("keeps an intent through add, increment, decrement and remove", () => {
+    const added = addPurchaseIntent([], intent);
+    const incremented = addPurchaseIntent(added, intent);
     expect(incremented[0]).toMatchObject({
-      id: product.id,
-      slug: "racao",
+      id: intent.id,
       quantity: 2,
     });
-    expect(setCartQuantity(incremented, product.id, 1)[0].quantity).toBe(1);
-    expect(setCartQuantity(incremented, product.id, 0)).toEqual([]);
+    expect(setPurchaseIntentQuantity(incremented, intent.id, 1)[0].quantity).toBe(1);
+    expect(setPurchaseIntentQuantity(incremented, intent.id, 0)).toEqual([]);
   });
 
   it("uses remote gallery images and preserves the temporary local gallery when empty", () => {

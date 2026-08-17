@@ -22,6 +22,7 @@ import { presentBusinessHours } from "@/lib/business-hours";
 import { presentServicePrice } from "@/lib/pricing";
 import { resolveServiceIcon } from "@/lib/service-icons";
 import { whatsappUrl } from "@/lib/whatsapp";
+import { buildCatalog } from "@/data/catalog";
 import { imageObjectPosition } from "@/lib/image-position";
 
 export const dynamic = "force-static";
@@ -131,7 +132,7 @@ export default async function Home() {
           whatsappRaw={business.whatsappRaw}
         />
         <TaxiPet whatsappRaw={business.whatsappRaw} />
-        <Products products={data.products} whatsappRaw={business.whatsappRaw} />
+        <Products catalog={buildCatalog(data.categories)} whatsappRaw={business.whatsappRaw} />
         <section id="galeria" className="section bg-cream">
           <div className="container">
             <div className="flex flex-wrap items-end justify-between gap-4">
