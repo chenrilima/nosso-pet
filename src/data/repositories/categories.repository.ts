@@ -1,9 +1,10 @@
 import type { Database } from "@/types/database";
 import { repositoryError, repositoryWriteError, type DatabaseClient } from "./shared";
 export type CategoryRow = Database["public"]["Tables"]["categories"]["Row"];
+export type PublicCategoryRow = Pick<CategoryRow, "id" | "name" | "slug" | "sort_order">;
 export type AdminCategory = Pick<CategoryRow, "id" | "name" | "slug" | "description" | "sort_order" | "is_active"> & { dependency_count: number };
-export async function listActiveCategoryRows(client: DatabaseClient): Promise<CategoryRow[]> {
-  const { data, error } = await client.from("categories").select("*").eq("is_active", true).order("sort_order").order("name");
+export async function listActiveCategoryRows(client: DatabaseClient): Promise<PublicCategoryRow[]> {
+  const { data, error } = await client.from("categories").select("id, name, slug, sort_order").eq("is_active", true).order("sort_order").order("name");
   if (error) throw repositoryError("categories", error);
   return data;
 }

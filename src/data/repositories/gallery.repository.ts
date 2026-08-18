@@ -1,9 +1,10 @@
 import type { Database } from "@/types/database";
 import { repositoryError, repositoryWriteError, type DatabaseClient } from "./shared";
 export type GalleryImageRow = Database["public"]["Tables"]["gallery_images"]["Row"];
+export type PublicGalleryImageRow = Pick<GalleryImageRow, "id" | "storage_path" | "alt_text" | "caption" | "sort_order" | "position_x" | "position_y">;
 export type GalleryMetadataValues = Pick<GalleryImageRow, "alt_text" | "caption" | "sort_order" | "is_published">;
-export async function listPublishedGalleryImageRows(client: DatabaseClient): Promise<GalleryImageRow[]> {
-  const { data, error } = await client.from("gallery_images").select("*").eq("is_published", true).order("sort_order").order("alt_text");
+export async function listPublishedGalleryImageRows(client: DatabaseClient): Promise<PublicGalleryImageRow[]> {
+  const { data, error } = await client.from("gallery_images").select("id, storage_path, alt_text, caption, sort_order, position_x, position_y").eq("is_published", true).order("sort_order").order("alt_text");
   if (error) throw repositoryError("gallery_images", error);
   return data;
 }

@@ -60,7 +60,7 @@ insert into public.profiles (id, display_name, role)
 values ('UUID_DO_AUTH_USER', 'Nome do administrador', 'admin');
 ```
 
-Não use uma chave `service_role` no navegador nem a adicione ao repositório. O bucket público `site-assets` aceita somente imagens JPEG, PNG, WebP ou AVIF de até 5 MiB; escritas ficam limitadas a administradores e aos diretórios `products/`, `services/` e `gallery/`. O upload da galeria também valida MIME, tamanho, extensão e nomes seguros antes de registrar o arquivo.
+Não use uma chave `service_role` no navegador nem a adicione ao repositório. O bucket público `site-assets` aceita somente imagens JPEG, PNG, WebP ou AVIF de até 5 MiB; escritas ficam limitadas a administradores e aos diretórios `hero/`, `gallery/`, `categories/` e `options/`. O upload da galeria também valida MIME, tamanho, extensão e nomes seguros antes de registrar o arquivo.
 
 Na galeria, imagens JPEG, PNG, WebP e AVIF de até 20 MiB são decodificadas no navegador, sem ampliar, e limitadas a 1920 px no maior lado. Fotos viram WebP com qualidade 0,82; PNG com transparência permanece PNG. O resultado, novamente limitado a 5 MiB, é enviado com UUID em `gallery/`. O servidor valida sessão administrativa, path, MIME e tamanho antes de registrar a metadata. Falha de cadastro remove o arquivo novo; substituição só remove o arquivo antigo depois de atualizar o registro. Na exclusão, o registro é removido primeiro para nunca deixar a home apontando para arquivo ausente, e uma eventual falha de Storage é registrada para limpeza posterior. Sem foto publicada, a home exibe um estado vazio neutro.
 

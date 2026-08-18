@@ -1,8 +1,8 @@
-import type { BusinessSettingsRow } from "@/data/repositories/business.repository";
+import type { PublicBusinessSettingsRow } from "@/data/repositories/business.repository";
 import type { BusinessHours, BusinessSettings } from "@/types/domain";
 import { safeImagePosition } from "@/lib/image-position";
 
-function mapHours(value: BusinessSettingsRow["hours"]): BusinessHours | null {
+function mapHours(value: PublicBusinessSettingsRow["hours"]): BusinessHours | null {
   if (value === null) return null;
   if (typeof value !== "object" || Array.isArray(value)) throw new Error("Formato de horários inválido.");
   const entries = Object.entries(value);
@@ -10,7 +10,7 @@ function mapHours(value: BusinessSettingsRow["hours"]): BusinessHours | null {
   return Object.fromEntries(entries) as BusinessHours;
 }
 
-export function toBusinessSettings(row: BusinessSettingsRow, assetUrl: (path: string) => string): BusinessSettings {
+export function toBusinessSettings(row: PublicBusinessSettingsRow, assetUrl: (path: string) => string): BusinessSettings {
   return {
     id: row.id, name: row.name, shortName: row.short_name, phone: row.phone, phoneRaw: row.phone_raw, whatsapp: row.whatsapp, whatsappRaw: row.whatsapp_raw,
     instagram: { handle: row.instagram_handle, url: row.instagram_url },

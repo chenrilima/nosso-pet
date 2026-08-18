@@ -29,6 +29,7 @@ describe("public repositories", () => {
     expect(calls).toContainEqual(["from", table]);
     expect(calls).toContainEqual(filter);
     expect(calls).toContainEqual(["order", "sort_order"]);
+    expect(calls.find(([operation]) => operation === "select")?.[1]).not.toBe("*");
   });
 
   it("derives public and bookable services from the same table", async () => {
@@ -40,6 +41,7 @@ describe("public repositories", () => {
     expect(bookableFake.calls).toContainEqual(["from", "services"]);
     expect(bookableFake.calls).toContainEqual(["eq", "is_bookable", true]);
     expect(publicFake.calls).not.toContainEqual(["eq", "is_bookable", true]);
+    expect(publicFake.calls.find(([operation]) => operation === "select")?.[1]).not.toBe("*");
   });
 
   it("wraps infrastructure failures in RepositoryError", async () => {

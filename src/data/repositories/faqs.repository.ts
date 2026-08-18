@@ -1,9 +1,10 @@
 import type { Database } from "@/types/database";
 import { repositoryError, repositoryWriteError, type DatabaseClient } from "./shared";
 export type FaqRow = Database["public"]["Tables"]["faqs"]["Row"];
+export type PublicFaqRow = Pick<FaqRow, "id" | "question" | "answer" | "sort_order">;
 export type FaqWriteValues = Pick<FaqRow, "question" | "answer" | "sort_order" | "is_published">;
-export async function listPublishedFaqRows(client: DatabaseClient): Promise<FaqRow[]> {
-  const { data, error } = await client.from("faqs").select("*").eq("is_published", true).order("sort_order").order("question");
+export async function listPublishedFaqRows(client: DatabaseClient): Promise<PublicFaqRow[]> {
+  const { data, error } = await client.from("faqs").select("id, question, answer, sort_order").eq("is_published", true).order("sort_order").order("question");
   if (error) throw repositoryError("faqs", error);
   return data;
 }

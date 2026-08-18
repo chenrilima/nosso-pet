@@ -6,6 +6,8 @@ import { signInAdmin, signOutAdmin } from "./service";
 import type { LoginState } from "./types";
 import { validateLoginForm } from "./validation";
 
+const LOGIN_FAILURE_MESSAGE = "Não foi possível acessar o painel com essas credenciais.";
+
 export async function loginAction(_state: LoginState, formData: FormData): Promise<LoginState> {
   const validation = validateLoginForm(formData);
   if (!validation.credentials) return { status: "error", fieldErrors: validation.fieldErrors };
@@ -14,9 +16,7 @@ export async function loginAction(_state: LoginState, formData: FormData): Promi
   if (!result.ok) {
     return {
       status: "error",
-      message: result.reason === "not_admin"
-        ? "Esta conta não possui acesso ao painel administrativo."
-        : "E-mail ou senha inválidos.",
+      message: LOGIN_FAILURE_MESSAGE,
     };
   }
   redirect("/admin");

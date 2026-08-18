@@ -9,8 +9,8 @@ export type AdminCatalogCategory = Pick<Database["public"]["Tables"]["categories
 export async function listPublicCatalog(client: DatabaseClient): Promise<CatalogCategory[]> {
   const [categoriesResult, groupsResult, optionsResult] = await Promise.all([
     client.from("categories").select("id,name,slug,description,sort_order").eq("is_active", true).order("sort_order").order("name"),
-    client.from("product_option_groups").select("*").eq("is_active", true).order("sort_order").order("name"),
-    client.from("product_options").select("*").eq("is_active", true).order("sort_order").order("name"),
+    client.from("product_option_groups").select("id, category_id, name, is_required, sort_order").eq("is_active", true).order("sort_order").order("name"),
+    client.from("product_options").select("id, group_id, name, is_active, sort_order").eq("is_active", true).order("sort_order").order("name"),
   ]);
   const error = categoriesResult.error ?? groupsResult.error ?? optionsResult.error;
   if (error) throw repositoryError("catálogo de opções", error);

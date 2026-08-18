@@ -7,6 +7,7 @@ import { RepositoryError } from "@/data/repositories/shared";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/features/admin/auth/server";
 import type { AdminActionResult } from "@/features/admin/mutations/types";
+import { UUID_PATTERN } from "@/features/admin/mutations/validation";
 import { validateBusinessSettings } from "./validation";
 import { HERO_PATH_PATTERN, removeHeroImageFile, uploadedImageDiagnostic, uploadedImageErrorMessage, verifyHeroUpload } from "@/lib/storage/admin-site-assets";
 
@@ -15,10 +16,12 @@ const logSettingsFailure = (operation: string, error: unknown) => console.error(
 
 export async function updateBusinessSettingsAction(id: string, _previous: AdminActionResult, data: FormData): Promise<AdminActionResult> {
   await requireAdmin();
+  if (!UUID_PATTERN.test(id)) return { ok: false, message: "Configurações não encontradas." };
   const validation = validateBusinessSettings(data);
   if (!validation.values) return { ok: false, message: "Revise os campos destacados.", fieldErrors: validation.fieldErrors };
   try {
-    await updateBusinessSettings(await createClient(), id, validation.values);
+    const updated = await updateBusinessSettings(await createClient(), id, validation.values);
+    if (!updated) return { ok: false, message: "Configurações não encontradas." };
     revalidatePath("/");
     revalidatePath("/", "layout");
     revalidatePath("/admin/settings");

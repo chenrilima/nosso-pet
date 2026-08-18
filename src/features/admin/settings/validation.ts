@@ -7,7 +7,14 @@ const required = (errors: Record<string, string>, key: string, value: string, ma
   if (!value) errors[key] = "Campo obrigatório.";
   else if (value.length > max) errors[key] = `Use no máximo ${max} caracteres.`;
 };
-const validUrl = (value: string) => { try { const url = new URL(value); return url.protocol === "https:" || url.protocol === "http:"; } catch { return false; } };
+const parseHttpsUrl = (value: string) => { try { const url = new URL(value); return url.protocol === "https:" ? url : null; } catch { return null; } };
+const isInstagramUrl = (value: string) => { const url = parseHttpsUrl(value); return Boolean(url && (url.hostname === "instagram.com" || url.hostname === "www.instagram.com")); };
+const GOOGLE_MAPS_HOSTS = new Set(["www.google.com", "maps.google.com"]);
+const isGoogleMapsUrl = (value: string) => { const url = parseHttpsUrl(value); return Boolean(url && (GOOGLE_MAPS_HOSTS.has(url.hostname) || url.hostname === "maps.app.goo.gl")); };
+const isGoogleMapsEmbedUrl = (value: string) => {
+  const url = parseHttpsUrl(value);
+  return Boolean(url && GOOGLE_MAPS_HOSTS.has(url.hostname) && url.pathname.startsWith("/maps") && (url.pathname.startsWith("/maps/embed") || url.searchParams.get("output") === "embed"));
+};
 
 export function normalizeBrazilianPhone(value: string, includeCountryCode: boolean): string | null {
   let digits = value.replace(/\D/g, "");
@@ -30,7 +37,9 @@ export function validateBusinessSettings(data: FormData): { values?: BusinessSet
   if (!phoneRaw) fieldErrors.phone = "Informe um telefone brasileiro com DDD.";
   if (!whatsappRaw) fieldErrors.whatsapp = "Informe um WhatsApp brasileiro com DDD.";
   if (!/^@?[a-zA-Z0-9._]{1,30}$/.test(fields.instagramHandle)) fieldErrors.instagramHandle = "Informe um usuário válido do Instagram.";
-  for (const key of ["instagramUrl", "mapsUrl", "mapsEmbedUrl"] as const) if (fields[key] && !validUrl(fields[key])) fieldErrors[key] = "Informe uma URL http(s) válida.";
+  if (fields.instagramUrl && !isInstagramUrl(fields.instagramUrl)) fieldErrors.instagramUrl = "Informe uma URL HTTPS válida do Instagram.";
+  if (fields.mapsUrl && !isGoogleMapsUrl(fields.mapsUrl)) fieldErrors.mapsUrl = "Informe uma URL HTTPS válida do Google Maps.";
+  if (fields.mapsEmbedUrl && !isGoogleMapsEmbedUrl(fields.mapsEmbedUrl)) fieldErrors.mapsEmbedUrl = "Informe uma URL HTTPS válida de incorporação do Google Maps.";
   if (!/^[A-Z]{2}$/.test(fields.state)) fieldErrors.state = "Use a sigla do estado com 2 letras.";
 
   const hours: Record<string, string> = {};
