@@ -119,7 +119,7 @@ describe("database to domain adapters", () => {
       sortOrder: 2,
     }));
 
-  it("maps service pricing, icon and public image URL", () => {
+  it("maps only service fields consumed publicly", () => {
     const row: ServiceRow = {
       ...timestamps,
       id: "service",
@@ -138,13 +138,12 @@ describe("database to domain adapters", () => {
       sort_order: 0,
     };
     expect(
-      toService(row, (path) => `https://assets.test/${path}`),
+      toService(row),
     ).toMatchObject({
       iconKey: "bath",
       pricingType: "starting_at",
       price: null,
       priceFrom: 50,
-      imageUrl: "https://assets.test/services/bath.webp",
     });
   });
 

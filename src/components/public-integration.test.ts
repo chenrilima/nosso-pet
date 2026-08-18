@@ -11,13 +11,10 @@ const service = (name: string): Service => ({
   slug: name.toLowerCase(),
   description: "Descrição",
   iconKey: "bath",
-  imageUrl: null,
   pricingType: "quote",
   price: null,
   priceFrom: null,
-  durationMinutes: null,
   isBookable: true,
-  isFeatured: false,
   sortOrder: 0,
 });
 
@@ -47,14 +44,14 @@ describe("public component data contracts", () => {
     expect(setPurchaseIntentQuantity(incremented, intent.id, 0)).toEqual([]);
   });
 
-  it("uses remote gallery images and preserves the temporary local gallery when empty", () => {
+  it("uses remote gallery images with captions and stays empty without them", () => {
     const remote: GalleryImage[] = [
       {
         id: "photo",
         imageUrl: "https://example.com/photo.webp",
         imagePosition: { x: 50, y: 50 },
         altText: "Pet",
-        caption: null,
+        caption: "Depois do banho",
         sortOrder: 0,
       },
     ];
@@ -64,6 +61,7 @@ describe("public component data contracts", () => {
         imageUrl: "https://example.com/photo.webp",
         altText: "Pet",
         imagePosition: { x: 50, y: 50 },
+        caption: "Depois do banho",
       },
     ]);
     expect(
@@ -75,9 +73,6 @@ describe("public component data contracts", () => {
         { ...remote[0], id: "photo-5" },
       ]),
     ).toHaveLength(5);
-    expect(galleryForPresentation([])).toHaveLength(4);
-    expect(galleryForPresentation([])[0].imageUrl).toBe(
-      "/images/hero-pets.png",
-    );
+    expect(galleryForPresentation([])).toEqual([]);
   });
 });

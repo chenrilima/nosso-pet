@@ -1,7 +1,7 @@
 import type { Database } from "@/types/database";
 import { repositoryError, repositoryWriteError, type DatabaseClient } from "./shared";
 export type ServiceRow = Database["public"]["Tables"]["services"]["Row"];
-export type ServiceWriteValues = { name: string; slug: string; description: string; icon_key: string; pricing_type: Database["public"]["Enums"]["pricing_type"]; price: string | null; price_from: string | null; duration_minutes: number | null; is_active: boolean; is_bookable: boolean; is_featured: boolean; sort_order: number };
+export type ServiceWriteValues = { name: string; slug: string; description: string; icon_key: string; pricing_type: Database["public"]["Enums"]["pricing_type"]; price: string | null; price_from: string | null; is_active: boolean; is_bookable: boolean; sort_order: number };
 async function listServiceRows(client: DatabaseClient, bookableOnly: boolean): Promise<ServiceRow[]> {
   let query = client.from("services").select("*").eq("is_active", true);
   if (bookableOnly) query = query.eq("is_bookable", true);

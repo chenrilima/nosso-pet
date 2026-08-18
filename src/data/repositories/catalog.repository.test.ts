@@ -10,6 +10,6 @@ describe("dynamic public catalog", () => {
       { data: [{ id: "g", category_id: "c", name: "Necessidade", is_required: false, is_active: true, sort_order: 2, created_at: "", updated_at: "" }], error: null },
       { data: [{ id: "o", group_id: "g", name: "Urinário", image_path: "options/u.webp", is_active: true, sort_order: 1, created_at: "", updated_at: "" }], error: null },
     ]);
-    await expect(listPublicCatalog(client, (path) => `asset:${path}`)).resolves.toEqual([{ id: "c", name: "Rações", slug: "racoes", description: "Desc", sortOrder: 0, optionGroups: [{ id: "g", name: "Necessidade", isRequired: false, sortOrder: 2, options: [{ id: "o", name: "Urinário", imageUrl: "asset:options/u.webp", isActive: true, sortOrder: 1 }] }] }]);
+    await expect(listPublicCatalog(client)).resolves.toEqual([{ id: "c", name: "Rações", slug: "racoes", description: "Desc", sortOrder: 0, optionGroups: [{ id: "g", name: "Necessidade", isRequired: false, sortOrder: 2, options: [{ id: "o", name: "Urinário", isActive: true, sortOrder: 1 }] }] }]);
   });
 });

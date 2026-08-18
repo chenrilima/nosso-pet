@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { updateHomeContent } from "@/data/repositories/business.repository";
+import { getBusinessSettingsForAdmin, updateHomeContent } from "@/data/repositories/business.repository";
 import { requireAdmin } from "@/features/admin/auth/server";
 import type { AdminActionResult } from "@/features/admin/mutations/types";
 import { UUID_PATTERN } from "@/features/admin/mutations/validation";
@@ -14,7 +14,10 @@ export async function updateHomeContentAction(id: string, _previous: AdminAction
   const validation = validateHomeContent(data);
   if (!validation.values) return { ok: false, message: "Revise os campos destacados.", fieldErrors: validation.fieldErrors };
   try {
-    await updateHomeContent(await createClient(), id, validation.values);
+    const client = await createClient();
+    const current = await getBusinessSettingsForAdmin(client);
+    if (!current || current.id !== id) return { ok: false, message: "Configuração não encontrada." };
+    await updateHomeContent(client, id, validation.values);
     revalidatePath("/");
     revalidatePath("/admin/content");
     return { ok: true, message: "Conteúdo da página inicial salvo com sucesso." };

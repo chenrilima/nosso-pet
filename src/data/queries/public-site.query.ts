@@ -1,4 +1,3 @@
-import { fallbackBookableServices, fallbackCategories, fallbackFaqs, fallbackServices } from "@/data/fallbacks/public-site.fallback";
 import type { PublicSiteData } from "@/types/domain";
 import { getPublicBusinessSettings } from "./business.query";
 import { getActiveCategories } from "./categories.query";
@@ -9,8 +8,8 @@ import type { DataAccessError, PublicDataResult } from "./result";
 import { getBookableServices, getPublicServices } from "./services.query";
 
 export type PublicDataResource = keyof PublicSiteData;
-export type PublicDataSource = "remote" | "fallback";
-export type PublicSiteDataWithFallback = { data: PublicSiteData; source: PublicDataSource | "mixed"; sources: Record<PublicDataResource, PublicDataSource>; warnings: DataAccessError[] };
+export type PublicDataSource = "remote" | "unavailable";
+export type PublicSiteDataSafe = { data: PublicSiteData; source: PublicDataSource | "mixed"; sources: Record<PublicDataResource, PublicDataSource>; warnings: DataAccessError[] };
 
 export type PublicSiteQueries = {
   business: typeof getPublicBusinessSettings;
@@ -37,13 +36,13 @@ export async function getPublicSiteData(queries: PublicSiteQueries = defaultQuer
   return { ok: true, data: { business: business.data, categories: categories.data, services: servicesResult.data, bookableServices: bookableServices.data, gallery: gallery.data, faqs: faqs.data } };
 }
 
-export async function getPublicSiteDataWithFallback(queries: PublicSiteQueries = defaultQueries): Promise<PublicSiteDataWithFallback> {
+export async function getPublicSiteDataSafe(queries: PublicSiteQueries = defaultQueries): Promise<PublicSiteDataSafe> {
   const [business, categories, servicesResult, bookableServices, gallery, faqs] = await executePublicQueries(queries);
   const pairs = { business, categories, services: servicesResult, bookableServices, gallery, faqs };
   const warnings = Object.values(pairs).filter((result): result is { ok: false; error: DataAccessError } => !result.ok).map((result) => result.error);
-  if (warnings.length) console.error(JSON.stringify({ event: "public_data_fallback", failures: warnings.map(({ entity, operation, retryable }) => ({ entity, operation, retryable })) }));
-  const sources = Object.fromEntries(Object.entries(pairs).map(([key, result]) => [key, result.ok ? "remote" : "fallback"])) as Record<PublicDataResource, PublicDataSource>;
+  if (warnings.length) console.error(JSON.stringify({ event: "public_data_unavailable", failures: warnings.map(({ entity, operation, retryable }) => ({ entity, operation, retryable })) }));
+  const sources = Object.fromEntries(Object.entries(pairs).map(([key, result]) => [key, result.ok ? "remote" : "unavailable"])) as Record<PublicDataResource, PublicDataSource>;
   const sourceValues = Object.values(sources);
-  const source = sourceValues.every((value) => value === "remote") ? "remote" : sourceValues.every((value) => value === "fallback") ? "fallback" : "mixed";
-  return { data: { business: business.ok ? business.data : null, categories: categories.ok ? categories.data : fallbackCategories, services: servicesResult.ok ? servicesResult.data : fallbackServices, bookableServices: bookableServices.ok ? bookableServices.data : fallbackBookableServices, gallery: gallery.ok ? gallery.data : [], faqs: faqs.ok ? faqs.data : fallbackFaqs }, source, sources, warnings };
+  const source = sourceValues.every((value) => value === "remote") ? "remote" : sourceValues.every((value) => value === "unavailable") ? "unavailable" : "mixed";
+  return { data: { business: business.ok ? business.data : null, categories: categories.ok ? categories.data : [], services: servicesResult.ok ? servicesResult.data : [], bookableServices: bookableServices.ok ? bookableServices.data : [], gallery: gallery.ok ? gallery.data : [], faqs: faqs.ok ? faqs.data : [] }, source, sources, warnings };
 }

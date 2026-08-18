@@ -15,13 +15,12 @@ import { Header } from "@/components/Header";
 import { Booking } from "@/components/Booking";
 import { Products, TaxiPet } from "@/components/Commerce";
 import { Footer } from "@/components/Footer";
-import { getPublicSiteDataWithFallback } from "@/data/queries/public-site.query";
+import { getPublicSiteDataSafe } from "@/data/queries/public-site.query";
 import { galleryForPresentation } from "@/lib/gallery-presentation";
 import { presentBusinessHours } from "@/lib/business-hours";
 import { presentServicePrice } from "@/lib/pricing";
 import { resolveServiceIcon } from "@/lib/service-icons";
 import { generalInquiryMessage, whatsappUrl } from "@/lib/whatsapp";
-import { buildCatalogFallback } from "@/data/catalog";
 import { getPublicCatalog } from "@/data/queries/catalog.query";
 import { imageObjectPosition } from "@/lib/image-position";
 import { resolveTaxiPetService } from "@/lib/taxipet";
@@ -30,8 +29,8 @@ export const dynamic = "force-static";
 export const revalidate = 60;
 
 export default async function Home() {
-  const [{ data }, catalogResult] = await Promise.all([getPublicSiteDataWithFallback(), getPublicCatalog()]);
-  const catalog = catalogResult.ok ? catalogResult.data : buildCatalogFallback(data.categories);
+  const [{ data }, catalogResult] = await Promise.all([getPublicSiteDataSafe(), getPublicCatalog()]);
+  const catalog = catalogResult.ok ? catalogResult.data : [];
   const taxiPetService = resolveTaxiPetService(data.services);
   if (!data.business) throw new Error("Configurações comerciais indisponíveis.");
   const business = data.business;
@@ -157,27 +156,23 @@ export default async function Home() {
             </div>
             <div className="mt-10 grid auto-rows-[260px] grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
               {gallery.map((image, i) => (
-                <div
+                <figure
                   key={image.id}
-                  className={`${i === 0 && gallery.length > 1 ? "sm:row-span-2" : ""} overflow-hidden rounded-3xl bg-white`}
+                  className={`${i === 0 && gallery.length > 1 ? "sm:row-span-2" : ""} relative overflow-hidden rounded-3xl bg-white`}
                 >
                   <Image
                     src={image.imageUrl}
                     alt={image.altText}
                     width={900}
                     height={700}
-                    className={`h-full w-full object-cover transition duration-500 hover:scale-105 ${image.objectPosition ?? ""}`}
+                    className="h-full w-full object-cover transition duration-500 hover:scale-105"
                     style={image.imagePosition ? { objectPosition: imageObjectPosition(image.imagePosition) } : undefined}
                   />
-                </div>
+                  {image.caption && <figcaption className="absolute inset-x-0 bottom-0 bg-olive/85 px-4 py-3 text-sm font-bold text-white">{image.caption}</figcaption>}
+                </figure>
               ))}
             </div>
-            {data.gallery.length === 0 && (
-              <p className="mt-4 text-xs text-gray-500">
-                Imagens ilustrativas nesta primeira versão; substitua pelas
-                fotos reais do estabelecimento em public/images.
-              </p>
-            )}
+            {gallery.length === 0 && <p className="mt-8 text-center text-sm font-semibold text-gray-500">Nenhuma foto publicada no momento.</p>}
           </div>
         </section>
         <section id="sobre" className="section">
