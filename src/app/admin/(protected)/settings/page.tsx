@@ -1,9 +1,7 @@
 import { getBusinessSettingsForAdmin } from "@/data/repositories/business.repository";
 import { requireAdmin } from "@/features/admin/auth/server";
 import { SettingsForm } from "@/features/admin/settings/settings-form";
-import { HeroImageForm } from "@/features/admin/settings/hero-image-form";
 import { createClient } from "@/lib/supabase/server";
-import { getPublicSiteAssetUrl } from "@/lib/storage/site-assets";
 
 export const dynamic = "force-dynamic";
 export default async function AdminSettingsPage() {
@@ -24,16 +22,6 @@ export default async function AdminSettingsPage() {
       </header>
       {row ? (
         <>
-          <HeroImageForm
-            id={row.id}
-            imageUrl={
-              row.hero_image_path
-                ? getPublicSiteAssetUrl(client, row.hero_image_path)
-                : null
-            }
-            positionX={row.hero_position_x}
-            positionY={row.hero_position_y}
-          />
           <SettingsForm row={row} />
         </>
       ) : (

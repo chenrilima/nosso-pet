@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, Tags, Scissors, Images, CircleHelp, Building2, ExternalLink } from "lucide-react";
+import { LayoutDashboard, Package, Tags, Scissors, Images, CircleHelp, Building2, ExternalLink, PanelsTopLeft } from "lucide-react";
 
 const items = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
+  { label: "Página inicial", icon: PanelsTopLeft, href: "/admin/content" },
   { label: "Produtos", icon: Package, href: "/admin/products" },
   { label: "Categorias", icon: Tags, href: "/admin/categories" },
   { label: "Serviços", icon: Scissors, href: "/admin/services" },

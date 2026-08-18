@@ -20,7 +20,7 @@ export const generalInquiryMessage = (businessName: string) =>
   `Olá! Vim pelo site da ${businessName} e gostaria de mais informações.`;
 export const bookingInquiryMessage = (businessName: string) =>
   `Olá! Vim pelo site da ${businessName} e gostaria de agendar um atendimento.`;
-export const taxiMessage = (d: Record<string, string>) =>
-  `Olá! Gostaria de consultar o TaxiPet.\n\n👤 Nome: ${d.name}\n📍 Bairro: ${d.district}\n🏠 Endereço/CEP: ${d.address}\n🐾 Pet: ${d.pet}\n🛁 Serviço: ${d.service}\n📅 Data desejada: ${d.date.split("-").reverse().join("/")}\n\nPodem confirmar a disponibilidade?`;
+export const taxiMessage = (d: Record<string, string>, info?: { region: string | null; price: string | null }) =>
+  `Olá! Gostaria de consultar o TaxiPet.\n\n👤 Nome: ${d.name}\n📍 Bairro: ${d.district}\n🏠 Endereço/CEP: ${d.address}\n🐾 Pet: ${d.pet}\n🛁 Serviço: ${d.service}\n📅 Data desejada: ${d.date.split("-").reverse().join("/")}${info?.region ? `\n🗺️ Região informada: ${info.region}` : ""}${info?.price ? `\n💰 Informação de preço: ${info.price}` : ""}\n\nPodem confirmar a disponibilidade?`;
 export const cartMessage = (items: PurchaseIntent[]) =>
   `Olá! Gostaria de consultar estes produtos:\n\n🛒 PEDIDO\n\n${items.map((item) => `${item.quantity}x ${item.categoryName}${item.selections.map((selection) => `\n• ${selection.groupName}: ${selection.optionName}`).join("")}`).join("\n\n")}\n\nForma desejada: Retirada / consultar entrega\n\nPode confirmar disponibilidade e valores?`;

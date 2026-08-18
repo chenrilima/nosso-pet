@@ -47,12 +47,29 @@ describe("database to domain adapters", () => {
       hero_image_path: null,
       hero_position_x: 50,
       hero_position_y: 50,
+      hero_title: "Título",
+      hero_highlight: "Destaque",
+      hero_description: "Descrição",
+      hero_primary_cta: "Principal",
+      hero_secondary_cta: "Secundário",
+      about_title: "Sobre",
+      about_description: "Institucional",
+      about_feature_one_title: "Cuidado",
+      about_feature_two_title: "Confiança",
+      footer_description: "Rodapé",
+      footer_contact_title: "Contato",
+      footer_location_title: "Localização",
+      taxipet_title: "TaxiPet",
+      taxipet_region: null,
+      taxipet_note: null,
+      taxipet_cta: "Consultar",
     };
     expect(toBusinessSettings(row, (path) => path)).toMatchObject({
       shortName: "NP",
       address: { line: "Rua 1" },
       hours: null,
       heroImageUrl: null,
+      content: { hero: { title: "Título" }, taxipet: { region: null } },
     });
   });
 

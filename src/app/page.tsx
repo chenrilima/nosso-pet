@@ -35,6 +35,7 @@ export default async function Home() {
   const taxiPetService = resolveTaxiPetService(data.services);
   if (!data.business) throw new Error("Configurações comerciais indisponíveis.");
   const business = data.business;
+  const content = business.content;
   const gallery = galleryForPresentation(data.gallery);
   const businessHours = presentBusinessHours(business.hours);
 
@@ -47,20 +48,19 @@ export default async function Home() {
             <div>
               <p className="eyebrow">Banho e tosa em {business.address.city}</p>
               <h1 className="mt-3 text-[clamp(2.8rem,6vw,5.7rem)] font-black leading-[.93] tracking-[-.055em] text-olive">
-                Seu pet cuidado como parte da{" "}
-                <span className="text-brand">família.</span>
+                {content.hero.title}{" "}
+                <span className="text-brand">{content.hero.highlight}</span>
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-8 text-gray-600">
-                Banho, tosa, cuidados, produtos e muito carinho para o seu
-                melhor amigo em {business.address.city}.
+                {content.hero.description}
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <a href="#agendamento" className="btn btn-primary">
-                  Agendar atendimento
+                  {content.hero.primaryCta}
                   <ArrowRight size={18} />
                 </a>
                 <a href="#servicos" className="btn btn-secondary">
-                  Conhecer serviços
+                  {content.hero.secondaryCta}
                 </a>
               </div>
               <div className="mt-9 flex flex-wrap gap-4 text-sm font-bold text-olive/70">
@@ -136,7 +136,7 @@ export default async function Home() {
           whatsappRaw={business.whatsappRaw}
           businessName={business.shortName}
         />
-        <TaxiPet service={taxiPetService} whatsappRaw={business.whatsappRaw} />
+        <TaxiPet service={taxiPetService} content={content.taxipet} price={taxiPetService ? presentServicePrice(taxiPetService) : null} whatsappRaw={business.whatsappRaw} />
         <Products catalog={catalog} whatsappRaw={business.whatsappRaw} />
         <section id="galeria" className="section bg-cream">
           <div className="container">
@@ -185,24 +185,22 @@ export default async function Home() {
             <div>
               <p className="eyebrow">Sobre a {business.shortName}</p>
               <h2 className="title mt-2">
-                Cuidado, carinho e confiança em cada atendimento.
+                {content.about.title}
               </h2>
             </div>
             <div className="text-lg leading-8 text-gray-600">
               <p>
-                A {business.shortName} está perto das famílias de {business.address.city},
-                oferecendo uma rotina de cuidados mais tranquila para tutores e
-                animais.
+                {content.about.description}
               </p>
               <div className="mt-7 grid gap-4 sm:grid-cols-2">
                 <div className="card p-5">
                   <Heart className="text-brand" />
-                  <b className="mt-3 block text-olive">Atendimento acolhedor</b>
+                  <b className="mt-3 block text-olive">{content.about.featureOneTitle}</b>
                 </div>
                 <div className="card p-5">
                   <ShieldCheck className="text-brand" />
                   <b className="mt-3 block text-olive">
-                    Informação com clareza
+                    {content.about.featureTwoTitle}
                   </b>
                 </div>
               </div>
@@ -302,7 +300,7 @@ export default async function Home() {
       >
         <MessageCircle />
       </a>
-      <Footer business={business} />
+      <Footer business={business} content={content.footer} />
     </>
   );
 }

@@ -9,6 +9,7 @@ const settings: BusinessSettings = {
   address: { line: "Rua Nova, 10", district: "Centro", city: "Osasco", state: "SP", postalCode: "06000-000" },
   maps: { url: "https://maps.test", embedUrl: "https://maps.test/embed" },
   hours: { monday: "08:00-18:00", sunday: "closed" }, heroImagePath: null, heroImageUrl: null, heroImagePosition: { x: 50, y: 50 },
+  content: { hero: { title: "", highlight: "", description: "", primaryCta: "", secondaryCta: "" }, about: { title: "", description: "", featureOneTitle: "", featureTwoTitle: "" }, footer: { description: "", contactTitle: "", locationTitle: "" }, taxipet: { title: "", region: null, note: null, cta: "" } },
 };
 
 describe("business SEO", () => {

@@ -10,7 +10,7 @@ import type { AdminActionResult } from "@/features/admin/mutations/types";
 import { validateBusinessSettings } from "./validation";
 import { HERO_PATH_PATTERN, removeHeroImageFile, uploadedImageDiagnostic, uploadedImageErrorMessage, verifyHeroUpload } from "@/lib/storage/admin-site-assets";
 
-const refreshHero = () => { revalidatePath("/"); revalidatePath("/admin"); revalidatePath("/admin/settings"); };
+const refreshHero = () => { revalidatePath("/"); revalidatePath("/admin"); revalidatePath("/admin/content"); };
 const logSettingsFailure = (operation: string, error: unknown) => console.error("Falha em mutação de configurações.", { entity: error instanceof RepositoryError ? error.entity : "business_settings", operation, code: error instanceof RepositoryError ? error.infrastructureCode : undefined, name: error instanceof Error ? error.name : "unknown", ...uploadedImageDiagnostic(error) });
 
 export async function updateBusinessSettingsAction(id: string, _previous: AdminActionResult, data: FormData): Promise<AdminActionResult> {

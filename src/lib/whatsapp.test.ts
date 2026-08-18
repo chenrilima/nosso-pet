@@ -20,7 +20,10 @@ describe("WhatsApp message templates", () => {
   });
 
   it("builds TaxiPet and cart messages", () => {
-    expect(taxiMessage({ name: "Ana", district: "Centro", address: "06765-000", pet: "Nina", service: "Banho", date: "2026-09-03" })).toContain("Data desejada: 03/09/2026");
+    const taxi = taxiMessage({ name: "Ana", district: "Centro", address: "06765-000", pet: "Nina", service: "Banho", date: "2026-09-03" }, { region: "Taboão e região", price: "A partir de R$ 35,00" });
+    expect(taxi).toContain("Data desejada: 03/09/2026");
+    expect(taxi).toContain("Região informada: Taboão e região");
+    expect(taxi).toContain("Informação de preço: A partir de R$ 35,00");
     const message = cartMessage([{ id: "one", categoryId: "racoes", categoryName: "Rações", quantity: 2, selections: [{ groupId: "animal", groupName: "Pet", optionId: "caes", optionName: "Cães" }] }]);
     expect(message).toContain("2x Rações\n• Pet: Cães");
   });

@@ -4,9 +4,9 @@ import { Car, Minus, Plus, Send, ShoppingBag, Trash2, X } from "lucide-react";
 import { cartMessage, taxiMessage, whatsappUrl } from "@/lib/whatsapp";
 import { addPurchaseIntent, createPurchaseIntent, setPurchaseIntentQuantity, type SelectionValues } from "@/lib/purchase-intents";
 import { TAXIPET_SLUG } from "@/lib/taxipet";
-import type { CatalogCategory, PurchaseIntent, Service } from "@/types/domain";
+import type { CatalogCategory, HomeContent, PurchaseIntent, Service } from "@/types/domain";
 
-export function TaxiPet({ service, whatsappRaw }: { service?: Service; whatsappRaw: string }) {
+export function TaxiPet({ service, content, price, whatsappRaw }: { service?: Service; content: HomeContent["taxipet"]; price: string | null; whatsappRaw: string }) {
   const [open, setOpen] = useState(false);
   const [d, setD] = useState({
     name: "",
@@ -27,16 +27,16 @@ export function TaxiPet({ service, whatsappRaw }: { service?: Service; whatsappR
             <Car size={32} />
           </span>
           <p className="eyebrow">TaxiPet</p>
-          <h2 className="title mt-2">Seu pet vai e volta com conforto.</h2>
+          <h2 className="title mt-2">{content.title}</h2>
           <p className="mt-5 max-w-xl text-lg text-gray-600">
-            Consulte a disponibilidade do nosso transporte e facilite a rotina
-            de cuidados do seu melhor amigo.
+            {service.description}
           </p>
+          {(content.region || price) && <p className="mt-4 font-black text-olive">{[content.region, price].filter(Boolean).join(" · ")}</p>}
           <button
             className="btn btn-primary mt-7"
             onClick={() => setOpen(!open)}
           >
-            {open ? "Fechar formulário" : "Consultar TaxiPet"}
+            {open ? "Fechar formulário" : content.cta}
           </button>
         </div>
         {open ? (
@@ -44,7 +44,7 @@ export function TaxiPet({ service, whatsappRaw }: { service?: Service; whatsappR
             className="card grid gap-4 p-6 sm:grid-cols-2"
             onSubmit={(e) => {
               e.preventDefault();
-              window.open(whatsappUrl(taxiMessage(d), whatsappRaw), "_blank");
+              window.open(whatsappUrl(taxiMessage(d, { region: content.region, price }), whatsappRaw), "_blank");
             }}
           >
             {Object.entries({
@@ -94,9 +94,7 @@ export function TaxiPet({ service, whatsappRaw }: { service?: Service; whatsappR
               <li>✓ Escolha o serviço e a data desejada</li>
               <li>✓ A equipe confirma disponibilidade pelo WhatsApp</li>
             </ul>
-            <p className="relative mt-6 text-sm font-bold text-brand">
-              O valor e a região de atendimento são confirmados pela equipe.
-            </p>
+            {content.note && <p className="relative mt-6 text-sm font-bold text-brand">{content.note}</p>}
           </div>
         )}
       </div>

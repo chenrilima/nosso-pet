@@ -37,12 +37,24 @@ export type Database = {
       business_settings: {
         Row: {
           address_line: string
+          about_description: string
+          about_feature_one_title: string
+          about_feature_two_title: string
+          about_title: string
           city: string
           created_at: string
           district: string
+          footer_contact_title: string
+          footer_description: string
+          footer_location_title: string
+          hero_description: string
+          hero_highlight: string
           hero_image_path: string | null
           hero_position_x: number
           hero_position_y: number
+          hero_primary_cta: string
+          hero_secondary_cta: string
+          hero_title: string
           hours: Json | null
           id: string
           instagram_handle: string
@@ -56,18 +68,34 @@ export type Database = {
           short_name: string
           singleton_key: boolean
           state: string
+          taxipet_cta: string
+          taxipet_note: string | null
+          taxipet_region: string | null
+          taxipet_title: string
           updated_at: string
           whatsapp: string
           whatsapp_raw: string
         }
         Insert: {
           address_line: string
+          about_description?: string
+          about_feature_one_title?: string
+          about_feature_two_title?: string
+          about_title?: string
           city: string
           created_at?: string
           district: string
+          footer_contact_title?: string
+          footer_description?: string
+          footer_location_title?: string
+          hero_description?: string
+          hero_highlight?: string
           hero_image_path?: string | null
           hero_position_x?: number
           hero_position_y?: number
+          hero_primary_cta?: string
+          hero_secondary_cta?: string
+          hero_title?: string
           hours?: Json | null
           id?: string
           instagram_handle: string
@@ -81,18 +109,34 @@ export type Database = {
           short_name: string
           singleton_key?: boolean
           state: string
+          taxipet_cta?: string
+          taxipet_note?: string | null
+          taxipet_region?: string | null
+          taxipet_title?: string
           updated_at?: string
           whatsapp: string
           whatsapp_raw: string
         }
         Update: {
           address_line?: string
+          about_description?: string
+          about_feature_one_title?: string
+          about_feature_two_title?: string
+          about_title?: string
           city?: string
           created_at?: string
           district?: string
+          footer_contact_title?: string
+          footer_description?: string
+          footer_location_title?: string
+          hero_description?: string
+          hero_highlight?: string
           hero_image_path?: string | null
           hero_position_x?: number
           hero_position_y?: number
+          hero_primary_cta?: string
+          hero_secondary_cta?: string
+          hero_title?: string
           hours?: Json | null
           id?: string
           instagram_handle?: string
@@ -106,6 +150,10 @@ export type Database = {
           short_name?: string
           singleton_key?: boolean
           state?: string
+          taxipet_cta?: string
+          taxipet_note?: string | null
+          taxipet_region?: string | null
+          taxipet_title?: string
           updated_at?: string
           whatsapp?: string
           whatsapp_raw?: string
