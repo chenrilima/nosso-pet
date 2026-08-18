@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 import { Car, Minus, Plus, Send, ShoppingBag, Trash2, X } from "lucide-react";
 import { cartMessage, taxiMessage, whatsappUrl } from "@/lib/whatsapp";
 import { addPurchaseIntent, createPurchaseIntent, setPurchaseIntentQuantity, type SelectionValues } from "@/lib/purchase-intents";
-import type { CatalogCategory, PurchaseIntent } from "@/types/domain";
+import { TAXIPET_SLUG } from "@/lib/taxipet";
+import type { CatalogCategory, PurchaseIntent, Service } from "@/types/domain";
 
-export function TaxiPet({ whatsappRaw }: { whatsappRaw: string }) {
+export function TaxiPet({ service, whatsappRaw }: { service?: Service; whatsappRaw: string }) {
   const [open, setOpen] = useState(false);
   const [d, setD] = useState({
     name: "",
@@ -17,6 +18,7 @@ export function TaxiPet({ whatsappRaw }: { whatsappRaw: string }) {
   });
   const update = (k: string, v: string) => setD((x) => ({ ...x, [k]: v }));
   const valid = Object.values(d).every(Boolean);
+  if (!service || service.slug !== TAXIPET_SLUG) return null;
   return (
     <section className="section bg-orange-50">
       <div className="container grid items-center gap-10 lg:grid-cols-2">

@@ -3,13 +3,11 @@ import { toBusinessSettings } from "./business.adapter";
 import { toCategory } from "./category.adapter";
 import { toFaq } from "./faq.adapter";
 import { toGalleryImage } from "./gallery.adapter";
-import { toProduct } from "./product.adapter";
 import { toService } from "./service.adapter";
 import type { BusinessSettingsRow } from "@/data/repositories/business.repository";
 import type { CategoryRow } from "@/data/repositories/categories.repository";
 import type { FaqRow } from "@/data/repositories/faqs.repository";
 import type { GalleryImageRow } from "@/data/repositories/gallery.repository";
-import type { ProductRow } from "@/data/repositories/products.repository";
 import type { ServiceRow } from "@/data/repositories/services.repository";
 
 const timestamps = { created_at: "2026-01-01", updated_at: "2026-01-01" };
@@ -103,32 +101,6 @@ describe("database to domain adapters", () => {
       slug: "racoes",
       sortOrder: 2,
     }));
-
-  it("maps product category, nullable price and nullable image", () => {
-    const row: ProductRow = {
-      ...timestamps,
-      id: "product",
-      category_id: "category",
-      name: "Ração",
-      slug: "racao",
-      description: "Boa",
-      price: null,
-      image_path: null,
-      image_position_x: 50,
-      image_position_y: 50,
-      is_active: true,
-      is_featured: false,
-      sort_order: 1,
-    };
-    expect(
-      toProduct(row, toCategory(categoryRow), () => "unused"),
-    ).toMatchObject({
-      category: { slug: "racoes" },
-      price: null,
-      imageUrl: null,
-      sortOrder: 1,
-    });
-  });
 
   it("maps service pricing, icon and public image URL", () => {
     const row: ServiceRow = {

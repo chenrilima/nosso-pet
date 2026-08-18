@@ -6,7 +6,7 @@ import { RepositoryError } from "@/data/repositories/shared";
 import { requireAdmin } from "@/features/admin/auth/server";
 import type { AdminActionResult } from "@/features/admin/mutations/types";
 import { createClient } from "@/lib/supabase/server";
-import { UUID_PATTERN } from "@/features/admin/products/validation";
+import { UUID_PATTERN } from "@/features/admin/mutations/validation";
 import { validateService } from "./validation";
 
 const refresh = () => { revalidatePath("/"); revalidatePath("/admin/services"); revalidatePath("/admin"); };

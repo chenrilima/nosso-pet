@@ -4,7 +4,7 @@ import { getPublicSiteData, getPublicSiteDataWithFallback } from "./public-site.
 
 const ok = <T>(data: T) => Promise.resolve({ ok: true as const, data });
 const failed = () => Promise.resolve({ ok: false as const, error: { code: "DATA_ACCESS_ERROR" as const, entity: "services" as const, operation: "read" as const, retryable: true } });
-const queries = (serviceResult: ReturnType<PublicSiteQueries["services"]> = ok([])): PublicSiteQueries => ({ business: vi.fn(() => ok(null)), categories: vi.fn(() => ok([])), products: vi.fn(() => ok([])), services: vi.fn(() => serviceResult), bookableServices: vi.fn(() => ok([])), gallery: vi.fn(() => ok([])), faqs: vi.fn(() => ok([])) });
+const queries = (serviceResult: ReturnType<PublicSiteQueries["services"]> = ok([])): PublicSiteQueries => ({ business: vi.fn(() => ok(null)), categories: vi.fn(() => ok([])), services: vi.fn(() => serviceResult), bookableServices: vi.fn(() => ok([])), gallery: vi.fn(() => ok([])), faqs: vi.fn(() => ok([])) });
 
 describe("public site aggregation and fallback", () => {
   it("aggregates successful resources without fallback", async () => {
@@ -20,7 +20,8 @@ describe("public site aggregation and fallback", () => {
     expect(result.source).toBe("mixed");
     expect(result.sources.services).toBe("fallback");
     expect(result.sources.gallery).toBe("remote");
-    expect(result.data.services).toHaveLength(8);
+    expect(result.data.services).toHaveLength(7);
+    expect(result.data.services.map((service) => service.slug)).not.toContain("taxipet");
     expect(result.warnings).toHaveLength(1);
     expect(spy).toHaveBeenCalledOnce();
     spy.mockRestore();
@@ -43,7 +44,6 @@ describe("public site aggregation and fallback", () => {
     const failingQueries: PublicSiteQueries = {
       business: vi.fn(() => failed()),
       categories: vi.fn(() => failed()),
-      products: vi.fn(() => failed()),
       services: vi.fn(() => failed()),
       bookableServices: vi.fn(() => failed()),
       gallery: vi.fn(() => failed()),
@@ -53,8 +53,7 @@ describe("public site aggregation and fallback", () => {
     const remoteEmpty = await getPublicSiteDataWithFallback(queries());
 
     expect(fallback.source).toBe("fallback");
-    expect(fallback.data.products).toHaveLength(5);
-    expect(remoteEmpty.data.products).toEqual([]);
+    expect(fallback.data.categories).toEqual([]);
     expect(remoteEmpty.data.services).toEqual([]);
     expect(remoteEmpty.data.faqs).toEqual([]);
     spy.mockRestore();

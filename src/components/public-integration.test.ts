@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { bookingOptions } from "./Booking";
+import { resolveTaxiPetService } from "@/lib/taxipet";
 import { addPurchaseIntent, setPurchaseIntentQuantity } from "@/lib/purchase-intents";
 import { galleryForPresentation } from "@/lib/gallery-presentation";
 import type { GalleryImage, PurchaseIntent, Service } from "@/types/domain";
@@ -26,6 +27,13 @@ describe("public component data contracts", () => {
   it("uses bookable services and keeps Other as a presentation option", () => {
     expect(bookingOptions([service("Banho")])).toEqual(["Banho", "Outro"]);
     expect(bookingOptions([])).toEqual(["Outro"]);
+  });
+
+  it("only exposes TaxiPet when the active service query contains its stable slug", () => {
+    const taxi = { ...service("TaxiPet"), slug: "taxipet" };
+    expect(resolveTaxiPetService([taxi])).toBe(taxi);
+    expect(resolveTaxiPetService([service("Banho")])).toBeUndefined();
+    expect(resolveTaxiPetService([])).toBeUndefined();
   });
 
   it("keeps an intent through add, increment, decrement and remove", () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { DatabaseClient } from "@/data/repositories/shared";
 import { OPTIMIZED_IMAGE_LIMIT } from "@/lib/images/optimize-image";
-import { UploadedImageValidationError, verifyGalleryUpload, verifyHeroUpload, verifyProductUpload } from "./admin-site-assets";
+import { UploadedImageValidationError, verifyGalleryUpload, verifyHeroUpload } from "./admin-site-assets";
 
 function clientWithInfo(data: Record<string, unknown> | null, error: { status?: number } | null = null) {
   const info = vi.fn().mockResolvedValue({ data, error });
@@ -12,7 +12,6 @@ function clientWithInfo(data: Record<string, unknown> | null, error: { status?: 
 describe("admin site asset validation", () => {
   it.each([
     [verifyGalleryUpload, "gallery/20000000-0000-4000-8000-000000000001.webp"],
-    [verifyProductUpload, "products/20000000-0000-4000-8000-000000000001.webp"],
     [verifyHeroUpload, "hero/20000000-0000-4000-8000-000000000001.webp"],
   ])("reads exact object metadata for every supported prefix", async (verify, path) => {
     const { client, info } = clientWithInfo({ contentType: "image/webp", size: 42_000 });

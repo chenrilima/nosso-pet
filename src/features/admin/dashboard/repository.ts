@@ -1,14 +1,14 @@
 import type { DatabaseClient } from "@/data/repositories/shared";
 
 export type AdminDashboardSummary = {
-  products: number;
+  productOptions: number;
   categories: number;
   services: number;
   faqs: number;
   galleryImages: number;
 };
 
-const tables = ["products", "categories", "services", "faqs", "gallery_images"] as const;
+const tables = ["product_options", "categories", "services", "faqs", "gallery_images"] as const;
 
 export async function getAdminDashboardSummary(client: DatabaseClient): Promise<AdminDashboardSummary> {
   const results = await Promise.all(
@@ -19,7 +19,7 @@ export async function getAdminDashboardSummary(client: DatabaseClient): Promise<
     }),
   );
   return {
-    products: results[0],
+    productOptions: results[0],
     categories: results[1],
     services: results[2],
     faqs: results[3],

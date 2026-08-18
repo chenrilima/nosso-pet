@@ -20,10 +20,8 @@ export function uploadedImageErrorMessage(error: unknown): string | null {
 export function uploadedImageDiagnostic(error: unknown) {
   return error instanceof UploadedImageValidationError ? { validationStep: error.validationStep, reasonCode: error.reasonCode } : {};
 }
-export const PRODUCT_PATH_PATTERN = /^products\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(?:webp|png)$/i;
 export const HERO_PATH_PATTERN = /^hero\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(?:webp|png)$/i;
 export function assertGalleryPath(path: string) { if (!GALLERY_PATH_PATTERN.test(path)) throw new Error("Caminho de imagem inválido."); }
-export function assertProductPath(path: string) { if (!PRODUCT_PATH_PATTERN.test(path)) throw new Error("Caminho de imagem de produto inválido."); }
 async function verifyUpload(client: DatabaseClient, path: string) {
   const { data: object, error } = await client.storage.from(SITE_ASSETS_BUCKET).info(path);
   if (error) throw new UploadedImageValidationError("storage_metadata", error.status === 404 ? "object_missing" : "object_unavailable");
@@ -38,8 +36,6 @@ export async function verifyGalleryUpload(client: DatabaseClient, path: string):
   assertGalleryPath(path); await verifyUpload(client, path);
 }
 export async function removeGalleryImageFile(client: DatabaseClient, path: string): Promise<void> { assertGalleryPath(path); const { error } = await client.storage.from(SITE_ASSETS_BUCKET).remove([path]); if (error) throw new Error("Não foi possível remover o arquivo da galeria."); }
-export async function verifyProductUpload(client: DatabaseClient, path: string): Promise<void> { assertProductPath(path); await verifyUpload(client, path); }
-export async function removeProductImageFile(client: DatabaseClient, path: string): Promise<void> { assertProductPath(path); const { error } = await client.storage.from(SITE_ASSETS_BUCKET).remove([path]); if (error) throw new Error("Não foi possível remover o arquivo do produto."); }
 export async function verifyHeroUpload(client: DatabaseClient, path: string): Promise<void> {
   if (!HERO_PATH_PATTERN.test(path)) throw new Error("Caminho da imagem principal inválido.");
   await verifyUpload(client, path);

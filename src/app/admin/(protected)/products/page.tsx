@@ -1,9 +1,14 @@
-import { listAdminCategories } from "@/data/repositories/categories.repository";
-import { listAdminProducts } from "@/data/repositories/products.repository";
+import Link from "next/link";
+import { ListTree, Tags } from "lucide-react";
 import { requireAdmin } from "@/features/admin/auth/server";
-import { NewProductForm, ProductCard } from "@/features/admin/products/product-forms";
-import { getPublicSiteAssetUrl } from "@/lib/storage/site-assets";
-import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
-export default async function AdminProductsPage() { await requireAdmin(); const client = await createClient(); const [products, categories] = await Promise.all([listAdminProducts(client), listAdminCategories(client)]); return <><header className="mb-8"><p className="eyebrow">Conteúdo</p><div className="mt-2 flex flex-wrap items-end justify-between gap-4"><div><h1 className="text-3xl font-black text-olive sm:text-4xl">Produtos</h1><p className="mt-2 font-semibold text-stone-600">Gerencie o catálogo e as etapas da consulta.</p></div><div className="flex gap-2"><a className="btn btn-secondary" href="/admin/products/options">Grupos e opções</a><a className="btn btn-primary" href="#novo-produto">Novo produto</a></div></div><p className="mt-4 rounded-2xl bg-amber-50 p-4 text-sm font-bold text-amber-900">Os grupos e opções definem a consulta pública. Os produtos abaixo são cadastros legados independentes.</p></header><NewProductForm categories={categories} />{products.length ? <section aria-label="Produtos cadastrados" className="space-y-4">{products.map((product) => <ProductCard key={product.id} product={product} categories={categories} imageUrl={product.image_path ? getPublicSiteAssetUrl(client, product.image_path) : null} />)}</section> : <section className="rounded-2xl border border-dashed border-stone-300 bg-white p-8 text-center"><h2 className="text-xl font-black text-olive">Nenhum produto cadastrado.</h2><p className="mt-2 font-semibold text-stone-600">Use o formulário acima para criar o primeiro produto.</p><a href="#novo-produto" className="btn btn-primary mt-4">Novo produto</a></section>}</>; }
+
+export default async function AdminProductsPage() {
+  await requireAdmin();
+  const paths = [
+    { href: "/admin/categories", title: "1. Categorias", description: "Defina as linhas de produtos exibidas no site.", icon: Tags },
+    { href: "/admin/products/options", title: "2. Grupos e opções", description: "Configure as escolhas que formam a consulta e a sacola.", icon: ListTree },
+  ];
+  return <><header className="mb-8"><p className="eyebrow">Conteúdo</p><h1 className="mt-2 text-3xl font-black text-olive sm:text-4xl">Produtos</h1><p className="mt-2 max-w-2xl font-semibold text-stone-600">O catálogo público é configurado por categorias, grupos e opções.</p></header><section className="grid gap-4 sm:grid-cols-2">{paths.map(({ href, title, description, icon: Icon }) => <Link key={href} href={href} className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm transition hover:border-brand/40"><span className="grid size-11 place-items-center rounded-xl bg-orange-50 text-brand"><Icon aria-hidden="true" size={22} /></span><h2 className="mt-5 text-xl font-black text-olive">{title}</h2><p className="mt-2 font-semibold text-stone-600">{description}</p><span className="btn btn-secondary mt-5">Gerenciar</span></Link>)}</section></>;
+}

@@ -4,7 +4,6 @@ import { RepositoryError } from "./shared";
 import { listActiveCategoryRows } from "./categories.repository";
 import { listPublishedFaqRows } from "./faqs.repository";
 import { listPublishedGalleryImageRows } from "./gallery.repository";
-import { listActiveProductRows } from "./products.repository";
 import { listActiveServiceRows, listBookableServiceRows } from "./services.repository";
 
 function fakeClient(error: { code: string; message: string } | null = null) {
@@ -22,7 +21,6 @@ function fakeClient(error: { code: string; message: string } | null = null) {
 describe("public repositories", () => {
   it.each([
     ["categories", listActiveCategoryRows, ["eq", "is_active", true]],
-    ["products", listActiveProductRows, ["eq", "is_active", true]],
     ["faqs", listPublishedFaqRows, ["eq", "is_published", true]],
     ["gallery_images", listPublishedGalleryImageRows, ["eq", "is_published", true]],
   ] as const)("filters and orders %s", async (table, repository, filter) => {
@@ -46,6 +44,6 @@ describe("public repositories", () => {
 
   it("wraps infrastructure failures in RepositoryError", async () => {
     const { client } = fakeClient({ code: "08006", message: "sensitive connection detail" });
-    await expect(listActiveProductRows(client)).rejects.toBeInstanceOf(RepositoryError);
+    await expect(listActiveCategoryRows(client)).rejects.toBeInstanceOf(RepositoryError);
   });
 });

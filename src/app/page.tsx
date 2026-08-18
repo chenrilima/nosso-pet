@@ -21,16 +21,18 @@ import { presentBusinessHours } from "@/lib/business-hours";
 import { presentServicePrice } from "@/lib/pricing";
 import { resolveServiceIcon } from "@/lib/service-icons";
 import { generalInquiryMessage, whatsappUrl } from "@/lib/whatsapp";
-import { buildCatalog } from "@/data/catalog";
+import { buildCatalogFallback } from "@/data/catalog";
 import { getPublicCatalog } from "@/data/queries/catalog.query";
 import { imageObjectPosition } from "@/lib/image-position";
+import { resolveTaxiPetService } from "@/lib/taxipet";
 
 export const dynamic = "force-static";
 export const revalidate = 60;
 
 export default async function Home() {
   const [{ data }, catalogResult] = await Promise.all([getPublicSiteDataWithFallback(), getPublicCatalog()]);
-  const catalog = catalogResult.ok ? catalogResult.data : buildCatalog(data.categories);
+  const catalog = catalogResult.ok ? catalogResult.data : buildCatalogFallback(data.categories);
+  const taxiPetService = resolveTaxiPetService(data.services);
   if (!data.business) throw new Error("Configurações comerciais indisponíveis.");
   const business = data.business;
   const gallery = galleryForPresentation(data.gallery);
@@ -134,7 +136,7 @@ export default async function Home() {
           whatsappRaw={business.whatsappRaw}
           businessName={business.shortName}
         />
-        <TaxiPet whatsappRaw={business.whatsappRaw} />
+        <TaxiPet service={taxiPetService} whatsappRaw={business.whatsappRaw} />
         <Products catalog={catalog} whatsappRaw={business.whatsappRaw} />
         <section id="galeria" className="section bg-cream">
           <div className="container">

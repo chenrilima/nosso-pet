@@ -1,8 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { buildCatalog } from "@/data/catalog";
+import type { CatalogCategory } from "@/types/domain";
 import { addPurchaseIntent, createPurchaseIntent, setPurchaseIntentQuantity } from "./purchase-intents";
 
-const [category] = buildCatalog([{ id: "category", name: "Rações", slug: "racoes", sortOrder: 0 }]);
+const category: CatalogCategory = {
+  id: "category", name: "Rações", slug: "racoes", description: "", sortOrder: 0,
+  optionGroups: [
+    ["animal", "Pet", [["caes", "Cães"], ["gatos", "Gatos"]]],
+    ["marca", "Marca", [["premier", "Premier"], ["golden", "Golden"]]],
+    ["fase", "Fase", [["adulto", "Adulto"]]],
+    ["tamanho", "Tamanho desejado", [["grande", "Grande"], ["pequeno", "Pequeno"]]],
+  ].map(([id, name, options], sortOrder) => ({ id: String(id), name: String(name), isRequired: true, sortOrder, options: (options as string[][]).map(([optionId, optionName], optionSortOrder) => ({ id: optionId, name: optionName, isActive: true, sortOrder: optionSortOrder })) })),
+};
 
 describe("purchase intents", () => {
   it("creates an intent from dynamic groups without fixed product fields", () => {

@@ -10,7 +10,7 @@ export default async function AdminDashboardPage() {
   const admin = await requireAdmin();
   const summary = await getAdminDashboardSummary(await createClient());
   const cards = [
-    ["Produtos", summary.products, "cadastrados", Package, "/admin/products"],
+    ["Produtos", summary.productOptions, "opções cadastradas", Package, "/admin/products"],
     ["Serviços", summary.services, "cadastrados", Scissors, "/admin/services"],
     ["Categorias", summary.categories, "cadastradas", Tags, "/admin/categories"],
     ["FAQ", summary.faqs, "perguntas", CircleHelp, "/admin/faqs"],

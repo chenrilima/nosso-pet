@@ -5,7 +5,7 @@ import { createFaq, deleteFaq, getAdminFaq, toggleFaqPublished, updateFaq } from
 import { requireAdmin } from "@/features/admin/auth/server";
 import type { AdminActionResult } from "@/features/admin/mutations/types";
 import { createClient } from "@/lib/supabase/server";
-import { UUID_PATTERN } from "@/features/admin/products/validation";
+import { UUID_PATTERN } from "@/features/admin/mutations/validation";
 import { validateFaq } from "./validation";
 const refresh = () => { revalidatePath("/"); revalidatePath("/admin"); revalidatePath("/admin/faqs"); };
 const failure = (error: unknown): AdminActionResult => { console.error("Falha em mutação de FAQ.", error instanceof Error ? { name: error.name } : undefined); return { ok: false, message: "Não foi possível salvar a FAQ. Tente novamente." }; };

@@ -5,7 +5,7 @@ import { createGalleryImage, deleteGalleryImage, getAdminGalleryImage, toggleGal
 import { parseImagePosition } from "@/lib/image-position";
 import { requireAdmin } from "@/features/admin/auth/server";
 import type { AdminActionResult } from "@/features/admin/mutations/types";
-import { UUID_PATTERN } from "@/features/admin/products/validation";
+import { UUID_PATTERN } from "@/features/admin/mutations/validation";
 import { removeGalleryImageFile, uploadedImageDiagnostic, uploadedImageErrorMessage, verifyGalleryUpload } from "@/lib/storage/admin-site-assets";
 import { createClient } from "@/lib/supabase/server";
 import { GALLERY_PATH_PATTERN, validateGalleryMetadata } from "./validation";
