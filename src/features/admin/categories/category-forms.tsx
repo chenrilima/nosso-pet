@@ -13,6 +13,7 @@ function CategoryFields({ category, state }: { category?: AdminCategory; state: 
     <label className="text-sm font-extrabold text-olive">Slug <span className="font-semibold text-stone-500">(opcional no cadastro)</span><input className={inputClass} name="slug" defaultValue={category?.slug} maxLength={80} placeholder="gerado pelo nome" /><FieldError state={state} name="slug" /></label>
     <label className="text-sm font-extrabold text-olive">Ordem<input className={inputClass} name="sortOrder" type="number" min="0" step="1" defaultValue={category?.sort_order ?? 0} required /><FieldError state={state} name="sortOrder" /></label>
     <label className="flex min-h-11 items-center gap-2 self-end rounded-xl bg-stone-50 px-3 font-extrabold text-olive"><input name="isActive" type="checkbox" defaultChecked={category?.is_active ?? true} />Ativa no site</label>
+    <label className="text-sm font-extrabold text-olive sm:col-span-2 lg:col-span-4">Descrição<textarea className={inputClass} name="description" defaultValue={category?.description} maxLength={300} rows={2} /><FieldError state={state} name="description" /></label>
   </div>;
 }
 

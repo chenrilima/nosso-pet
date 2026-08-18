@@ -23,13 +23,15 @@ import { presentServicePrice } from "@/lib/pricing";
 import { resolveServiceIcon } from "@/lib/service-icons";
 import { whatsappUrl } from "@/lib/whatsapp";
 import { buildCatalog } from "@/data/catalog";
+import { getPublicCatalog } from "@/data/queries/catalog.query";
 import { imageObjectPosition } from "@/lib/image-position";
 
 export const dynamic = "force-static";
 export const revalidate = 60;
 
 export default async function Home() {
-  const { data } = await getPublicSiteDataWithFallback();
+  const [{ data }, catalogResult] = await Promise.all([getPublicSiteDataWithFallback(), getPublicCatalog()]);
+  const catalog = catalogResult.ok ? catalogResult.data : buildCatalog(data.categories);
   const business = data.business ?? fallbackBusiness;
   const gallery = galleryForPresentation(data.gallery);
   const businessHours = presentBusinessHours(business.hours);
@@ -132,7 +134,7 @@ export default async function Home() {
           whatsappRaw={business.whatsappRaw}
         />
         <TaxiPet whatsappRaw={business.whatsappRaw} />
-        <Products catalog={buildCatalog(data.categories)} whatsappRaw={business.whatsappRaw} />
+        <Products catalog={catalog} whatsappRaw={business.whatsappRaw} />
         <section id="galeria" className="section bg-cream">
           <div className="container">
             <div className="flex flex-wrap items-end justify-between gap-4">

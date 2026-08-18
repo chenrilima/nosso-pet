@@ -1,6 +1,6 @@
 import { RepositoryError } from "@/data/repositories/shared";
 
-export type DataEntity = "business" | "categories" | "products" | "services" | "gallery" | "faqs";
+export type DataEntity = "business" | "categories" | "catalog" | "products" | "services" | "gallery" | "faqs";
 export type DataAccessError = { code: "DATA_ACCESS_ERROR"; entity: DataEntity; operation: "read"; retryable: boolean };
 export type PublicDataResult<T> = { ok: true; data: T } | { ok: false; error: DataAccessError };
 

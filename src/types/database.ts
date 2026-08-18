@@ -115,7 +115,9 @@ export type Database = {
       categories: {
         Row: {
           created_at: string
+          description: string
           id: string
+          image_path: string | null
           is_active: boolean
           name: string
           slug: string
@@ -124,7 +126,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string
           id?: string
+          image_path?: string | null
           is_active?: boolean
           name: string
           slug: string
@@ -133,7 +137,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string
           id?: string
+          image_path?: string | null
           is_active?: boolean
           name?: string
           slug?: string
@@ -141,6 +147,18 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      product_option_groups: {
+        Row: { category_id: string; created_at: string; id: string; is_active: boolean; is_required: boolean; name: string; sort_order: number; updated_at: string }
+        Insert: { category_id: string; created_at?: string; id?: string; is_active?: boolean; is_required?: boolean; name: string; sort_order?: number; updated_at?: string }
+        Update: { category_id?: string; created_at?: string; id?: string; is_active?: boolean; is_required?: boolean; name?: string; sort_order?: number; updated_at?: string }
+        Relationships: [{ foreignKeyName: "product_option_groups_category_id_fkey"; columns: ["category_id"]; isOneToOne: false; referencedRelation: "categories"; referencedColumns: ["id"] }]
+      }
+      product_options: {
+        Row: { created_at: string; group_id: string; id: string; image_path: string | null; is_active: boolean; name: string; sort_order: number; updated_at: string }
+        Insert: { created_at?: string; group_id: string; id?: string; image_path?: string | null; is_active?: boolean; name: string; sort_order?: number; updated_at?: string }
+        Update: { created_at?: string; group_id?: string; id?: string; image_path?: string | null; is_active?: boolean; name?: string; sort_order?: number; updated_at?: string }
+        Relationships: [{ foreignKeyName: "product_options_group_id_fkey"; columns: ["group_id"]; isOneToOne: false; referencedRelation: "product_option_groups"; referencedColumns: ["id"] }]
       }
       faqs: {
         Row: {
@@ -496,4 +514,3 @@ export const Constants = {
     },
   },
 } as const
-

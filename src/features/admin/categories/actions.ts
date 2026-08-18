@@ -47,7 +47,7 @@ export async function deleteCategoryAction(id: string, _previous: AdminActionRes
   if (invalidId(id)) return { ok: false, message: "Categoria inválida." };
   try {
     const result = await deleteCategory(await createClient(), id);
-    if (result === "in_use") return { ok: false, message: "Não é possível excluir esta categoria porque existem produtos vinculados." };
+    if (result === "in_use") return { ok: false, message: "Não é possível excluir esta categoria porque existem produtos, grupos ou opções vinculados." };
     refresh(); return { ok: true, message: "Categoria excluída permanentemente." };
   } catch (error) { return categoryFailure(error); }
 }

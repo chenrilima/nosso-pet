@@ -18,6 +18,8 @@ const categoryRow: CategoryRow = {
   id: "category",
   name: "Rações",
   slug: "racoes",
+  description: "",
+  image_path: null,
   sort_order: 2,
   is_active: true,
 };

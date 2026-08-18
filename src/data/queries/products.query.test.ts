@@ -9,6 +9,8 @@ const category = (overrides: Partial<CategoryRow> = {}): CategoryRow => ({
   id: "category",
   name: "Rações",
   slug: "racoes",
+  description: "",
+  image_path: null,
   sort_order: 0,
   is_active: true,
   ...overrides,

@@ -113,19 +113,19 @@ function CatalogDialog({ category, onClose, onAdd }: { category: CatalogCategory
     <div className="fixed inset-0 z-50 grid items-end bg-black/50 p-0 sm:place-items-center sm:p-5" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-labelledby="catalog-dialog-title" className="max-h-[92dvh] w-full overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl sm:max-w-2xl sm:rounded-3xl sm:p-7">
         <div className="flex items-start justify-between gap-4">
-          <div><p className="eyebrow">Monte sua consulta</p><h3 id="catalog-dialog-title" className="mt-1 text-2xl font-black text-olive">{category.name}</h3><p className="mt-2 text-sm text-gray-600">Escolha uma opção em cada etapa.</p></div>
+          <div><p className="eyebrow">Monte sua consulta</p><h3 id="catalog-dialog-title" className="mt-1 text-2xl font-black text-olive">{category.name}</h3><p className="mt-2 text-sm text-gray-600">Escolha as opções obrigatórias e, se quiser, as demais.</p></div>
           <button type="button" aria-label="Fechar opções" onClick={onClose} className="rounded-full border border-stone-200 p-2 text-olive"><X size={20} /></button>
         </div>
         <div className="mt-6 space-y-6">
           {category.optionGroups.map((group, index) => (
             <fieldset key={group.id}>
-              <legend className="font-black text-olive"><span className="mr-2 text-brand">{index + 1}.</span>{group.name}</legend>
+              <legend className="font-black text-olive"><span className="mr-2 text-brand">{index + 1}.</span>{group.name} {!group.isRequired && <span className="text-xs text-stone-500">(opcional)</span>}</legend>
               <div className="mt-3 flex flex-wrap gap-2">
                 {group.options.filter((option) => option.isActive).sort((a, b) => a.sortOrder - b.sortOrder).map((option) => {
                   const selected = values[group.id] === option.id;
                   return <label key={option.id} className={`cursor-pointer rounded-full border px-4 py-2 text-sm font-bold transition ${selected ? "border-brand bg-brand text-white" : "border-stone-200 bg-white text-olive hover:border-brand"}`}><input className="sr-only" type="radio" name={group.id} value={option.id} checked={selected} onChange={() => setValues((current) => ({ ...current, [group.id]: option.id }))} />{option.name}</label>;
                 })}
-              </div>
+              </div>{group.options.length === 0 && <p className="mt-2 text-sm font-semibold text-stone-500">Nenhuma opção disponível neste grupo.</p>}
             </fieldset>
           ))}
         </div>
@@ -171,7 +171,7 @@ export function Products({
                 <small className="font-black uppercase text-brand">Categoria</small>
                 <h3 className="mt-2 font-black">{category.name}</h3>
                 <p className="mt-2 flex-1 text-sm text-gray-500">{category.description}</p>
-                <button onClick={() => setSelectedCategory(category)} className="btn btn-secondary mt-5 text-sm">Ver opções</button>
+                <button disabled={category.optionGroups.length === 0} onClick={() => setSelectedCategory(category)} className="btn btn-secondary mt-5 text-sm disabled:cursor-not-allowed disabled:opacity-50">{category.optionGroups.length ? "Ver opções" : "Opções em breve"}</button>
               </div>
             </article>
           ))}
