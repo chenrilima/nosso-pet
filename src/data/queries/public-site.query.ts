@@ -1,4 +1,4 @@
-import { fallbackBookableServices, fallbackBusiness, fallbackCategories, fallbackFaqs, fallbackProducts, fallbackServices } from "@/data/fallbacks/public-site.fallback";
+import { fallbackBookableServices, fallbackCategories, fallbackFaqs, fallbackProducts, fallbackServices } from "@/data/fallbacks/public-site.fallback";
 import type { PublicSiteData } from "@/types/domain";
 import { getPublicBusinessSettings } from "./business.query";
 import { getActiveCategories } from "./categories.query";
@@ -47,5 +47,5 @@ export async function getPublicSiteDataWithFallback(queries: PublicSiteQueries =
   const sources = Object.fromEntries(Object.entries(pairs).map(([key, result]) => [key, result.ok ? "remote" : "fallback"])) as Record<PublicDataResource, PublicDataSource>;
   const sourceValues = Object.values(sources);
   const source = sourceValues.every((value) => value === "remote") ? "remote" : sourceValues.every((value) => value === "fallback") ? "fallback" : "mixed";
-  return { data: { business: business.ok ? business.data : fallbackBusiness, categories: categories.ok ? categories.data : fallbackCategories, products: products.ok ? products.data : fallbackProducts, services: servicesResult.ok ? servicesResult.data : fallbackServices, bookableServices: bookableServices.ok ? bookableServices.data : fallbackBookableServices, gallery: gallery.ok ? gallery.data : [], faqs: faqs.ok ? faqs.data : fallbackFaqs }, source, sources, warnings };
+  return { data: { business: business.ok ? business.data : null, categories: categories.ok ? categories.data : fallbackCategories, products: products.ok ? products.data : fallbackProducts, services: servicesResult.ok ? servicesResult.data : fallbackServices, bookableServices: bookableServices.ok ? bookableServices.data : fallbackBookableServices, gallery: gallery.ok ? gallery.data : [], faqs: faqs.ok ? faqs.data : fallbackFaqs }, source, sources, warnings };
 }

@@ -17,7 +17,7 @@ const localGallery: GalleryPresentationImage[] = [
 ].map((objectPosition, index) => ({
   id: `local-gallery-${index}`,
   imageUrl: "/images/hero-pets.png",
-  altText: "Pet bem cuidado pela Nosso Pet",
+  altText: "Pet bem cuidado em banho e tosa",
   objectPosition,
 }));
 

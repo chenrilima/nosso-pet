@@ -15,13 +15,12 @@ import { Header } from "@/components/Header";
 import { Booking } from "@/components/Booking";
 import { Products, TaxiPet } from "@/components/Commerce";
 import { Footer } from "@/components/Footer";
-import { fallbackBusiness } from "@/data/fallbacks/public-site.fallback";
 import { getPublicSiteDataWithFallback } from "@/data/queries/public-site.query";
 import { galleryForPresentation } from "@/lib/gallery-presentation";
 import { presentBusinessHours } from "@/lib/business-hours";
 import { presentServicePrice } from "@/lib/pricing";
 import { resolveServiceIcon } from "@/lib/service-icons";
-import { whatsappUrl } from "@/lib/whatsapp";
+import { generalInquiryMessage, whatsappUrl } from "@/lib/whatsapp";
 import { buildCatalog } from "@/data/catalog";
 import { getPublicCatalog } from "@/data/queries/catalog.query";
 import { imageObjectPosition } from "@/lib/image-position";
@@ -32,25 +31,26 @@ export const revalidate = 60;
 export default async function Home() {
   const [{ data }, catalogResult] = await Promise.all([getPublicSiteDataWithFallback(), getPublicCatalog()]);
   const catalog = catalogResult.ok ? catalogResult.data : buildCatalog(data.categories);
-  const business = data.business ?? fallbackBusiness;
+  if (!data.business) throw new Error("Configurações comerciais indisponíveis.");
+  const business = data.business;
   const gallery = galleryForPresentation(data.gallery);
   const businessHours = presentBusinessHours(business.hours);
 
   return (
     <>
-      <Header whatsappRaw={business.whatsappRaw} />
+      <Header businessName={business.shortName} whatsappRaw={business.whatsappRaw} />
       <main id="top">
         <section className="overflow-hidden bg-cream">
           <div className="container grid min-h-[680px] items-center gap-10 py-16 lg:grid-cols-[.85fr_1.15fr]">
             <div>
-              <p className="eyebrow">Banho e tosa em Taboão da Serra</p>
+              <p className="eyebrow">Banho e tosa em {business.address.city}</p>
               <h1 className="mt-3 text-[clamp(2.8rem,6vw,5.7rem)] font-black leading-[.93] tracking-[-.055em] text-olive">
                 Seu pet cuidado como parte da{" "}
                 <span className="text-brand">família.</span>
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-8 text-gray-600">
                 Banho, tosa, cuidados, produtos e muito carinho para o seu
-                melhor amigo em Taboão da Serra.
+                melhor amigo em {business.address.city}.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <a href="#agendamento" className="btn btn-primary">
@@ -64,7 +64,7 @@ export default async function Home() {
               <div className="mt-9 flex flex-wrap gap-4 text-sm font-bold text-olive/70">
                 <span>
                   <MapPin className="mr-1 inline text-brand" size={17} />
-                  Taboão da Serra
+                  {business.address.city}
                 </span>
                 <span>
                   <Sparkles className="mr-1 inline text-brand" size={17} />
@@ -132,6 +132,7 @@ export default async function Home() {
         <Booking
           services={data.bookableServices}
           whatsappRaw={business.whatsappRaw}
+          businessName={business.shortName}
         />
         <TaxiPet whatsappRaw={business.whatsappRaw} />
         <Products catalog={catalog} whatsappRaw={business.whatsappRaw} />
@@ -180,14 +181,14 @@ export default async function Home() {
         <section id="sobre" className="section">
           <div className="container grid gap-12 lg:grid-cols-2">
             <div>
-              <p className="eyebrow">Sobre a Nosso Pet</p>
+              <p className="eyebrow">Sobre a {business.shortName}</p>
               <h2 className="title mt-2">
                 Cuidado, carinho e confiança em cada atendimento.
               </h2>
             </div>
             <div className="text-lg leading-8 text-gray-600">
               <p>
-                A Nosso Pet está perto das famílias de Taboão da Serra,
+                A {business.shortName} está perto das famílias de {business.address.city},
                 oferecendo uma rotina de cuidados mais tranquila para tutores e
                 animais.
               </p>
@@ -231,7 +232,7 @@ export default async function Home() {
           <div className="container grid gap-8 lg:grid-cols-2">
             <div>
               <p className="eyebrow">Localização</p>
-              <h2 className="title mt-2">Estamos em Taboão da Serra</h2>
+              <h2 className="title mt-2">Estamos em {business.address.city}</h2>
               <p className="mt-5 text-lg leading-8 text-gray-600">
                 {business.address.line}
                 <br />
@@ -278,7 +279,7 @@ export default async function Home() {
               </div>
             </div>
             <iframe
-              title="Mapa da Nosso Pet em Taboão da Serra"
+              title={`Mapa da ${business.shortName} em ${business.address.city}`}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               src={business.maps.embedUrl}
@@ -289,11 +290,11 @@ export default async function Home() {
       </main>
       <a
         className="fixed bottom-5 right-5 z-40 grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl hover:scale-105"
-        aria-label="Falar com a Nosso Pet pelo WhatsApp"
+        aria-label={`Falar com a ${business.shortName} pelo WhatsApp`}
         target="_blank"
         rel="noopener noreferrer"
         href={whatsappUrl(
-          "Olá! Vim pelo site da Nosso Pet e gostaria de mais informações.",
+          generalInquiryMessage(business.shortName),
           business.whatsappRaw,
         )}
       >

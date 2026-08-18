@@ -23,9 +23,11 @@ export const bookingOptions = (services: Service[]) => [
 export function Booking({
   services,
   whatsappRaw,
+  businessName,
 }: {
   services: Service[];
   whatsappRaw: string;
+  businessName: string;
 }) {
   const [step, setStep] = useState(1);
   const [b, setB] = useState(initial);
@@ -209,7 +211,7 @@ export function Booking({
                   </label>
                 </div>
                 <p className="mt-5 rounded-xl bg-orange-50 p-4 text-sm">
-                  O horário será confirmado pela equipe da Nosso Pet pelo
+                  O horário será confirmado pela equipe da {businessName} pelo
                   WhatsApp.
                 </p>
               </>
@@ -253,7 +255,7 @@ export function Booking({
                   className="btn btn-primary mt-6 w-full"
                   target="_blank"
                   rel="noopener noreferrer"
-                  href={whatsappUrl(bookingMessage(b), whatsappRaw)}
+                  href={whatsappUrl(bookingMessage(b, businessName), whatsappRaw)}
                 >
                   <Send size={18} />
                   Enviar solicitação pelo WhatsApp

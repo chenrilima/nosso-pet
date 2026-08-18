@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
-import { whatsappUrl } from "@/lib/whatsapp";
+import { bookingInquiryMessage, whatsappUrl } from "@/lib/whatsapp";
 const links = [
   ["Início", "top"],
   ["Serviços", "servicos"],
@@ -12,13 +12,13 @@ const links = [
   ["Sobre", "sobre"],
   ["Localização", "localizacao"],
 ];
-export function Header({ whatsappRaw }: { whatsappRaw: string }) {
+export function Header({ businessName, whatsappRaw }: { businessName: string; whatsappRaw: string }) {
   const [open, setOpen] = useState(false);
   return (
     <header className="sticky top-0 z-50 border-b border-black/5 bg-white/95 backdrop-blur">
       <div className="container flex h-20 items-center justify-between">
         <a href="#top">
-          <Logo />
+          <Logo name={businessName} />
         </a>
         <nav className="hidden items-center gap-5 lg:flex">
           {links.map(([l, id]) => (
@@ -35,7 +35,7 @@ export function Header({ whatsappRaw }: { whatsappRaw: string }) {
             target="_blank"
             rel="noopener noreferrer"
             href={whatsappUrl(
-              "Olá! Vim pelo site da Nosso Pet e gostaria de agendar um atendimento.",
+              bookingInquiryMessage(businessName),
               whatsappRaw,
             )}
           >

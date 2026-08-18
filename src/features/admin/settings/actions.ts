@@ -20,6 +20,7 @@ export async function updateBusinessSettingsAction(id: string, _previous: AdminA
   try {
     await updateBusinessSettings(await createClient(), id, validation.values);
     revalidatePath("/");
+    revalidatePath("/", "layout");
     revalidatePath("/admin/settings");
     return { ok: true, message: "Dados da empresa salvos com sucesso." };
   } catch (error) {

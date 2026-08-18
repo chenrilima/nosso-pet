@@ -16,7 +16,7 @@ export default async function AdminSettingsPage() {
       <header className="mb-8">
         <p className="eyebrow">Empresa</p>
         <h1 className="mt-2 text-3xl font-black text-olive sm:text-4xl">
-          Dados da Nosso Pet
+          Dados da {row?.short_name ?? "empresa"}
         </h1>
         <p className="mt-2 font-semibold text-stone-600">
           Edite as informações exibidas no site público.

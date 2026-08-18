@@ -1,5 +1,5 @@
 import { Instagram, MapPin, MessageCircle, Phone } from "lucide-react";
-import { whatsappUrl } from "@/lib/whatsapp";
+import { generalInquiryMessage, whatsappUrl } from "@/lib/whatsapp";
 import type { BusinessSettings } from "@/types/domain";
 import { Logo } from "./Logo";
 export function Footer({ business }: { business: BusinessSettings }) {
@@ -7,9 +7,9 @@ export function Footer({ business }: { business: BusinessSettings }) {
     <footer className="bg-olive py-12 text-white">
       <div className="container grid gap-8 md:grid-cols-3">
         <div>
-          <Logo light />
+          <Logo name={business.shortName} light />
           <p className="mt-4 max-w-xs text-sm text-white/65">
-            Cuidado, carinho e praticidade para pets em Taboão da Serra.
+            Cuidado, carinho e praticidade para pets em {business.address.city}.
           </p>
         </div>
         <div>
@@ -23,7 +23,7 @@ export function Footer({ business }: { business: BusinessSettings }) {
               target="_blank"
               rel="noopener noreferrer"
               href={whatsappUrl(
-                "Olá! Vim pelo site da Nosso Pet e gostaria de mais informações.",
+                generalInquiryMessage(business.shortName),
                 business.whatsappRaw,
               )}
             >
@@ -49,7 +49,7 @@ export function Footer({ business }: { business: BusinessSettings }) {
         </div>
       </div>
       <div className="container mt-10 border-t border-white/10 pt-6 text-center text-xs text-white/50">
-        © {new Date().getFullYear()} Nosso Pet Banho e Tosa. Todos os direitos
+        © {new Date().getFullYear()} {business.name}. Todos os direitos
         reservados.
       </div>
     </footer>
