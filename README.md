@@ -83,7 +83,7 @@ No catálogo e nos serviços, mantenha o `slug` como identidade estável de dom�
 - O adapter OpenNext atual é aplicado automaticamente pelo Netlify. Não fixe nem adicione `@netlify/plugin-nextjs` ao repositório sem uma necessidade comprovada.
 - O fluxo recomendado é validar `dev`, fazer merge manual em `main` e deixar o Netlify publicar a produção. Se deploy previews estiverem ativos para `dev`, eles também consomem créditos.
 
-O layout usa atualmente `https://nossopettaboao.com.br` como `metadataBase`, mas a origem definitiva de produção ainda precisa ser confirmada. Quando ela for definida, alinhe a metadata e configure no Supabase Auth:
+O site usa provisoriamente `https://nosso-pet.netlify.app` como origem canônica centralizada em `src/config/business.ts`. Quando o domínio definitivo for definido, altere `siteUrl` nesse único local e configure no Supabase Auth:
 
 - **Site URL**: `https://DOMINIO_DE_PRODUCAO`.
 - **Redirect URLs**: `https://DOMINIO_DE_PRODUCAO/admin/**` e as URLs exatas de preview autorizadas, se previews administrativos forem necessários.
@@ -110,7 +110,7 @@ Se `psql` não estiver instalado no host, os mesmos arquivos podem ser enviados 
 
 A home mantém `revalidate = 60`, e as mutações editoriais de Empresa, Categorias, Produtos, Serviços, FAQ e Galeria invalidam `/` após sucesso. Falhas de recursos comerciais são registradas e resultam em estados neutros; `business_settings` indisponível impede a renderização comercial da home.
 
-O admin publica metadata `noindex, nofollow`, e `robots.ts` bloqueia `/admin/`. A home permanece indexável. O sitemap deve ser adicionado somente quando a origem final (URL Netlify ou domínio customizado) estiver confirmada; não use uma origem provisória como canônica.
+O admin publica metadata `noindex, nofollow`, neutraliza a canonical herdada e `robots.ts` bloqueia `/admin/`. A home permanece indexável. O sitemap contém apenas a landing page pública e usa a mesma origem canônica centralizada.
 
 ### Checklist operacional
 

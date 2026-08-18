@@ -17,7 +17,20 @@ describe("business SEO", () => {
     const metadata = businessMetadata(settings, "https://example.test");
     expect(metadata.title).toBe("Pet Taboão | Banho e Tosa em Osasco");
     expect(metadata.description).toContain("Conheça a Pet Taboão");
-    expect(metadata.openGraph).toMatchObject({ title: "Pet Taboão | Banho e Tosa em Osasco" });
+    expect(metadata.openGraph).toMatchObject({
+      title: "Pet Taboão | Banho e Tosa em Osasco",
+      url: "https://example.test",
+      images: [{
+        url: "/images/og-nosso-pet.png",
+        width: 1200,
+        height: 630,
+        alt: "Nosso Pet — Banho, tosa e cuidados para pets em Taboão da Serra",
+      }],
+    });
+    expect(metadata.twitter).toMatchObject({
+      card: "summary_large_image",
+      images: [{ url: "/images/og-nosso-pet.png" }],
+    });
   });
 
   it("builds JSON-LD from business settings without inventing closed hours", () => {
