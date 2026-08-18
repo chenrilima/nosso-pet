@@ -51,7 +51,7 @@ export function Booking({
             Conte um pouco sobre ele e envie sua solicitação pronta para nossa
             equipe.
           </p>
-          <div className="my-8 flex gap-2" aria-label={`Etapa ${step} de 5`}>
+          <div className="my-8 flex gap-2" aria-hidden="true">
             {[1, 2, 3, 4, 5].map((n) => (
               <span
                 key={n}

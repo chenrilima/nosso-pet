@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import type { GalleryImageRow } from "@/data/repositories/gallery.repository";
 import {
-  FieldError,
+  FieldError, fieldAccessibility,
   FormFeedback,
 } from "@/features/admin/components/form-feedback";
 import {
@@ -40,32 +40,36 @@ function MetadataFields({
   image?: GalleryImageRow;
   state: AdminActionResult;
 }) {
+  const id = (name: string) => `gallery-${image?.id ?? "new"}-${name}`;
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <label className="text-sm font-extrabold text-olive sm:col-span-2">
         Texto alternativo
         <input
+          {...fieldAccessibility(state, "altText", id("altText"))}
           className={inputClass}
           name="altText"
           defaultValue={image?.alt_text}
           maxLength={300}
           required
         />
-        <FieldError state={state} name="altText" />
+        <FieldError state={state} name="altText" fieldId={id("altText")} />
       </label>
       <label className="text-sm font-extrabold text-olive sm:col-span-2">
         Legenda <span className="font-semibold text-stone-500">(opcional)</span>
         <textarea
+          {...fieldAccessibility(state, "caption", id("caption"))}
           className={`${inputClass} min-h-24`}
           name="caption"
           defaultValue={image?.caption ?? ""}
           maxLength={1000}
         />
-        <FieldError state={state} name="caption" />
+        <FieldError state={state} name="caption" fieldId={id("caption")} />
       </label>
       <label className="text-sm font-extrabold text-olive">
         Ordem
         <input
+          {...fieldAccessibility(state, "sortOrder", id("sortOrder"))}
           className={inputClass}
           name="sortOrder"
           type="number"
@@ -74,7 +78,7 @@ function MetadataFields({
           defaultValue={image?.sort_order ?? 0}
           required
         />
-        <FieldError state={state} name="sortOrder" />
+        <FieldError state={state} name="sortOrder" fieldId={id("sortOrder")} />
       </label>
       <label className="flex min-h-11 items-center gap-2 self-end rounded-xl bg-stone-50 px-3 font-extrabold text-olive">
         <input

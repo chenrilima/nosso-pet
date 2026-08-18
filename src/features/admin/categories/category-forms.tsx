@@ -2,18 +2,19 @@
 
 import { useActionState, useState } from "react";
 import type { AdminCategory } from "@/data/repositories/categories.repository";
-import { FieldError, FormFeedback } from "@/features/admin/components/form-feedback";
+import { FieldError, FormFeedback, fieldAccessibility } from "@/features/admin/components/form-feedback";
 import { initialAdminActionResult } from "@/features/admin/mutations/types";
 import { createCategoryAction, deleteCategoryAction, toggleCategoryAction, updateCategoryAction } from "./actions";
 
 const inputClass = "field mt-1";
 function CategoryFields({ category, state }: { category?: AdminCategory; state: typeof initialAdminActionResult }) {
+  const fieldId = (name: string) => `category-${category?.id ?? "new"}-${name}`;
   return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-    <label className="text-sm font-extrabold text-olive">Nome<input className={inputClass} name="name" defaultValue={category?.name} maxLength={80} required /><FieldError state={state} name="name" /></label>
-    <label className="text-sm font-extrabold text-olive">Slug <span className="font-semibold text-stone-500">(opcional no cadastro)</span><input className={inputClass} name="slug" defaultValue={category?.slug} maxLength={80} placeholder="gerado pelo nome" /><FieldError state={state} name="slug" /></label>
-    <label className="text-sm font-extrabold text-olive">Ordem<input className={inputClass} name="sortOrder" type="number" min="0" step="1" defaultValue={category?.sort_order ?? 0} required /><FieldError state={state} name="sortOrder" /></label>
+    <label className="text-sm font-extrabold text-olive">Nome<input {...fieldAccessibility(state, "name", fieldId("name"))} className={inputClass} name="name" defaultValue={category?.name} maxLength={80} required /><FieldError state={state} name="name" fieldId={fieldId("name")} /></label>
+    <label className="text-sm font-extrabold text-olive">Slug <span className="font-semibold text-stone-500">(opcional no cadastro)</span><input {...fieldAccessibility(state, "slug", fieldId("slug"))} className={inputClass} name="slug" defaultValue={category?.slug} maxLength={80} placeholder="gerado pelo nome" /><FieldError state={state} name="slug" fieldId={fieldId("slug")} /></label>
+    <label className="text-sm font-extrabold text-olive">Ordem<input {...fieldAccessibility(state, "sortOrder", fieldId("sortOrder"))} className={inputClass} name="sortOrder" type="number" min="0" step="1" defaultValue={category?.sort_order ?? 0} required /><FieldError state={state} name="sortOrder" fieldId={fieldId("sortOrder")} /></label>
     <label className="flex min-h-11 items-center gap-2 self-end rounded-xl bg-stone-50 px-3 font-extrabold text-olive"><input name="isActive" type="checkbox" defaultChecked={category?.is_active ?? true} />Ativa no site</label>
-    <label className="text-sm font-extrabold text-olive sm:col-span-2 lg:col-span-4">Descrição<textarea className={inputClass} name="description" defaultValue={category?.description} maxLength={300} rows={2} /><FieldError state={state} name="description" /></label>
+    <label className="text-sm font-extrabold text-olive sm:col-span-2 lg:col-span-4">Descrição<textarea {...fieldAccessibility(state, "description", fieldId("description"))} className={inputClass} name="description" defaultValue={category?.description} maxLength={300} rows={2} /><FieldError state={state} name="description" fieldId={fieldId("description")} /></label>
   </div>;
 }
 

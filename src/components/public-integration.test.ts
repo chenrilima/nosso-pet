@@ -3,6 +3,7 @@ import { bookingOptions } from "./Booking";
 import { resolveTaxiPetService } from "@/lib/taxipet";
 import { addPurchaseIntent, setPurchaseIntentQuantity } from "@/lib/purchase-intents";
 import { galleryForPresentation } from "@/lib/gallery-presentation";
+import { cartQuantityLabel, focusTrapDestination } from "./Commerce";
 import type { GalleryImage, PurchaseIntent, Service } from "@/types/domain";
 
 const service = (name: string): Service => ({
@@ -42,6 +43,19 @@ describe("public component data contracts", () => {
     });
     expect(setPurchaseIntentQuantity(incremented, intent.id, 1)[0].quantity).toBe(1);
     expect(setPurchaseIntentQuantity(incremented, intent.id, 0)).toEqual([]);
+  });
+
+  it("gives cart quantity controls names that describe their real action", () => {
+    expect(cartQuantityLabel("Ração Premier", 2, "increase")).toBe("Aumentar quantidade de Ração Premier");
+    expect(cartQuantityLabel("Ração Premier", 2, "decrease")).toBe("Diminuir quantidade de Ração Premier");
+    expect(cartQuantityLabel("Ração Premier", 1, "decrease")).toBe("Remover Ração Premier");
+  });
+
+  it("wraps keyboard focus at both edges of the catalog dialog", () => {
+    expect(focusTrapDestination(false, "last")).toBe("first");
+    expect(focusTrapDestination(true, "first")).toBe("last");
+    expect(focusTrapDestination(true, "title")).toBe("last");
+    expect(focusTrapDestination(false, "other")).toBeNull();
   });
 
   it("uses remote gallery images with captions and stays empty without them", () => {

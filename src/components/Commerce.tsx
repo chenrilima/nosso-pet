@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Car, Minus, Plus, Send, ShoppingBag, Trash2, X } from "lucide-react";
 import { cartMessage, taxiMessage, whatsappUrl } from "@/lib/whatsapp";
 import { addPurchaseIntent, createPurchaseIntent, setPurchaseIntentQuantity, type SelectionValues } from "@/lib/purchase-intents";
@@ -101,20 +102,45 @@ export function TaxiPet({ service, content, price, whatsappRaw }: { service?: Se
     </section>
   );
 }
+const focusableSelector = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+export function focusTrapDestination(shiftKey: boolean, activeAt: "title" | "first" | "last" | "other") {
+  if (shiftKey && (activeAt === "title" || activeAt === "first")) return "last";
+  if (!shiftKey && activeAt === "last") return "first";
+  return null;
+}
+export function cartQuantityLabel(categoryName: string, quantity: number, direction: "increase" | "decrease") {
+  if (direction === "increase") return `Aumentar quantidade de ${categoryName}`;
+  return quantity === 1 ? `Remover ${categoryName}` : `Diminuir quantidade de ${categoryName}`;
+}
 function CatalogDialog({ category, onClose, onAdd }: { category: CatalogCategory; onClose: () => void; onAdd: (intent: PurchaseIntent) => void }) {
   const [values, setValues] = useState<SelectionValues>({});
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
-    const closeOnEscape = (event: KeyboardEvent) => event.key === "Escape" && onClose();
-    document.addEventListener("keydown", closeOnEscape);
-    return () => document.removeEventListener("keydown", closeOnEscape);
+    titleRef.current?.focus();
+    const page = document.querySelector<HTMLElement>("#public-page");
+    if (page) page.inert = true;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") return onClose();
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(focusableSelector));
+      if (!focusable.length) return event.preventDefault();
+      const first = focusable[0];
+      const last = focusable.at(-1)!;
+      const activeAt = document.activeElement === titleRef.current ? "title" : document.activeElement === first ? "first" : document.activeElement === last ? "last" : "other";
+      const destination = focusTrapDestination(event.shiftKey, activeAt);
+      if (destination) { event.preventDefault(); (destination === "first" ? first : last).focus(); }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => { document.removeEventListener("keydown", onKeyDown); if (page) page.inert = false; };
   }, [onClose]);
   const intent = createPurchaseIntent(category, values);
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 grid items-end bg-black/50 p-0 sm:place-items-center sm:p-5" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <div role="dialog" aria-modal="true" aria-labelledby="catalog-dialog-title" className="max-h-[92dvh] w-full overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl sm:max-w-2xl sm:rounded-3xl sm:p-7">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="catalog-dialog-title" className="max-h-[92dvh] w-full overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl sm:max-w-2xl sm:rounded-3xl sm:p-7">
         <div className="flex items-start justify-between gap-4">
-          <div><p className="eyebrow">Monte sua consulta</p><h3 id="catalog-dialog-title" className="mt-1 text-2xl font-black text-olive">{category.name}</h3><p className="mt-2 text-sm text-gray-600">Escolha as opções obrigatórias e, se quiser, as demais.</p></div>
-          <button type="button" aria-label="Fechar opções" onClick={onClose} className="rounded-full border border-stone-200 p-2 text-olive"><X size={20} /></button>
+          <div><p className="eyebrow">Monte sua consulta</p><h3 ref={titleRef} tabIndex={-1} id="catalog-dialog-title" className="mt-1 text-2xl font-black text-olive">{category.name}</h3><p className="mt-2 text-sm text-gray-600">Escolha as opções obrigatórias e, se quiser, as demais.</p></div>
+          <button type="button" aria-label="Fechar opções" onClick={onClose} className="grid size-11 shrink-0 place-items-center rounded-full border border-stone-200 text-olive"><X size={20} /></button>
         </div>
         <div className="mt-6 space-y-6">
           {category.optionGroups.map((group, index) => (
@@ -123,7 +149,7 @@ function CatalogDialog({ category, onClose, onAdd }: { category: CatalogCategory
               <div className="mt-3 flex flex-wrap gap-2">
                 {group.options.filter((option) => option.isActive).sort((a, b) => a.sortOrder - b.sortOrder).map((option) => {
                   const selected = values[group.id] === option.id;
-                  return <label key={option.id} className={`cursor-pointer rounded-full border px-4 py-2 text-sm font-bold transition ${selected ? "border-brand bg-brand text-white" : "border-stone-200 bg-white text-olive hover:border-brand"}`}><input className="sr-only" type="radio" name={group.id} value={option.id} checked={selected} onChange={() => setValues((current) => ({ ...current, [group.id]: option.id }))} />{option.name}</label>;
+                  return <label key={option.id} className={`flex min-h-11 cursor-pointer items-center rounded-full border px-4 py-2 text-sm font-bold transition ${selected ? "border-brand-strong bg-brand-strong text-white" : "border-stone-200 bg-white text-olive hover:border-brand-strong"}`}><input className="sr-only" type="radio" name={group.id} value={option.id} checked={selected} onChange={() => setValues((current) => ({ ...current, [group.id]: option.id }))} />{option.name}</label>;
                 })}
               </div>{group.options.length === 0 && <p className="mt-2 text-sm font-semibold text-stone-500">Nenhuma opção disponível neste grupo.</p>}
             </fieldset>
@@ -132,18 +158,25 @@ function CatalogDialog({ category, onClose, onAdd }: { category: CatalogCategory
         <button type="button" disabled={!intent} onClick={() => { if (intent) { onAdd(intent); onClose(); } }} className="btn btn-primary mt-7 w-full disabled:cursor-not-allowed disabled:opacity-40"><Plus size={18} />Adicionar à consulta</button>
       </div>
     </div>
-  );
+  , document.body);
 }
 
 export function Products({
   catalog,
+  unavailable = false,
   whatsappRaw,
 }: {
   catalog: CatalogCategory[];
+  unavailable?: boolean;
   whatsappRaw: string;
 }) {
   const [cart, setCart] = useState<PurchaseIntent[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<CatalogCategory | null>(null);
+  const openerRef = useRef<HTMLButtonElement | null>(null);
+  const closeDialog = () => {
+    setSelectedCategory(null);
+    requestAnimationFrame(() => openerRef.current?.focus());
+  };
   const add = (intent: PurchaseIntent) => setCart((current) => addPurchaseIntent(current, intent));
   const qty = (id: string, n: number) =>
     setCart((current) => setPurchaseIntentQuantity(current, id, n));
@@ -171,26 +204,28 @@ export function Products({
                 <small className="font-black uppercase text-brand">Categoria</small>
                 <h3 className="mt-2 font-black">{category.name}</h3>
                 <p className="mt-2 flex-1 text-sm text-gray-500">{category.description}</p>
-                <button disabled={category.optionGroups.length === 0} onClick={() => setSelectedCategory(category)} className="btn btn-secondary mt-5 text-sm disabled:cursor-not-allowed disabled:opacity-50">{category.optionGroups.length ? "Ver opções" : "Opções em breve"}</button>
+                <button disabled={category.optionGroups.length === 0} onClick={(event) => { openerRef.current = event.currentTarget; setSelectedCategory(category); }} className="btn btn-secondary mt-5 text-sm disabled:cursor-not-allowed disabled:opacity-50">{category.optionGroups.length ? "Ver opções" : "Opções em breve"}</button>
               </div>
             </article>
           ))}
         </div>
+        {unavailable && <p role="status" className="mt-8 text-center font-semibold text-gray-600">Não foi possível carregar as opções de produtos agora.</p>}
+        {!unavailable && catalog.length === 0 && <p className="mt-8 text-center font-semibold text-gray-600">Nenhuma opção de produto disponível no momento.</p>}
         {cart.length > 0 && (
           <div className="card mt-8 p-6">
             <h3 className="text-xl font-black">Sua sacola</h3>
             <div className="mt-4 divide-y">
               {cart.map((x) => (
                 <div
-                  className="flex items-center justify-between gap-3 py-3"
+                  className="flex min-w-0 flex-wrap items-center justify-between gap-3 py-3"
                   key={x.id}
                 >
-                  <div><p className="font-bold">{x.categoryName}</p><p className="mt-1 text-sm text-gray-500">{x.selections.map((selection) => selection.optionName).join(" • ")}</p></div>
-                  <div className="flex items-center gap-2">
+                  <div className="min-w-0 flex-1 basis-48"><p className="font-bold">{x.categoryName}</p><p className="mt-1 break-words text-sm text-gray-500">{x.selections.map((selection) => selection.optionName).join(" • ")}</p></div>
+                  <div className="ml-auto flex shrink-0 items-center gap-1">
                     <button
-                      aria-label="Diminuir"
+                      aria-label={cartQuantityLabel(x.categoryName, x.quantity, "decrease")}
                       onClick={() => qty(x.id, x.quantity - 1)}
-                      className="rounded-full border p-2"
+                      className="grid size-11 place-items-center rounded-full border"
                     >
                       {x.quantity === 1 ? (
                         <Trash2 size={15} />
@@ -200,9 +235,9 @@ export function Products({
                     </button>
                     <b>{x.quantity}</b>
                     <button
-                      aria-label="Aumentar"
+                      aria-label={cartQuantityLabel(x.categoryName, x.quantity, "increase")}
                       onClick={() => qty(x.id, x.quantity + 1)}
-                      className="rounded-full border p-2"
+                      className="grid size-11 place-items-center rounded-full border"
                     >
                       <Plus size={15} />
                     </button>
@@ -222,7 +257,7 @@ export function Products({
           </div>
         )}
       </div>
-      {selectedCategory && <CatalogDialog category={selectedCategory} onClose={() => setSelectedCategory(null)} onAdd={add} />}
+      {selectedCategory && <CatalogDialog category={selectedCategory} onClose={closeDialog} onAdd={add} />}
     </section>
   );
 }

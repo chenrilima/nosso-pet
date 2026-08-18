@@ -29,7 +29,8 @@ export const dynamic = "force-static";
 export const revalidate = 60;
 
 export default async function Home() {
-  const [{ data }, catalogResult] = await Promise.all([getPublicSiteDataSafe(), getPublicCatalog()]);
+  const [{ data, sources }, catalogResult] = await Promise.all([getPublicSiteDataSafe(), getPublicCatalog()]);
+  if (!catalogResult.ok) console.error(JSON.stringify({ event: "public_data_unavailable", failures: [catalogResult.error] }));
   const catalog = catalogResult.ok ? catalogResult.data : [];
   const taxiPetService = resolveTaxiPetService(data.services);
   if (!data.business) throw new Error("Configurações comerciais indisponíveis.");
@@ -39,7 +40,7 @@ export default async function Home() {
   const businessHours = presentBusinessHours(business.hours);
 
   return (
-    <>
+    <div id="public-page">
       <Header businessName={business.shortName} whatsappRaw={business.whatsappRaw} />
       <main id="top">
         <section className="overflow-hidden bg-cream">
@@ -91,6 +92,7 @@ export default async function Home() {
                 alt="Cães bem cuidados em ambiente de banho e tosa"
                 className="relative aspect-[4/3] rounded-[2.5rem] object-cover shadow-soft"
                 style={{ objectPosition: imageObjectPosition(business.heroImagePosition) }}
+                sizes="(max-width: 1023px) calc(100vw - 32px), 53vw"
               />
             </div>
           </div>
@@ -128,6 +130,8 @@ export default async function Home() {
                 );
               })}
             </div>
+            {sources.services === "unavailable" && <p role="status" className="mt-8 text-center font-semibold text-gray-600">Não foi possível carregar os serviços agora.</p>}
+            {sources.services === "remote" && data.services.length === 0 && <p className="mt-8 text-center font-semibold text-gray-600">Nenhum serviço disponível no momento.</p>}
           </div>
         </section>
         <Booking
@@ -136,7 +140,7 @@ export default async function Home() {
           businessName={business.shortName}
         />
         <TaxiPet service={taxiPetService} content={content.taxipet} price={taxiPetService ? presentServicePrice(taxiPetService) : null} whatsappRaw={business.whatsappRaw} />
-        <Products catalog={catalog} whatsappRaw={business.whatsappRaw} />
+        <Products catalog={catalog} unavailable={!catalogResult.ok} whatsappRaw={business.whatsappRaw} />
         <section id="galeria" className="section bg-cream">
           <div className="container">
             <div className="flex flex-wrap items-end justify-between gap-4">
@@ -167,12 +171,13 @@ export default async function Home() {
                     height={700}
                     className="h-full w-full object-cover transition duration-500 hover:scale-105"
                     style={image.imagePosition ? { objectPosition: imageObjectPosition(image.imagePosition) } : undefined}
+                    sizes="(max-width: 639px) calc(100vw - 32px), (max-width: 767px) calc(50vw - 24px), 25vw"
                   />
                   {image.caption && <figcaption className="absolute inset-x-0 bottom-0 bg-olive/85 px-4 py-3 text-sm font-bold text-white">{image.caption}</figcaption>}
                 </figure>
               ))}
             </div>
-            {gallery.length === 0 && <p className="mt-8 text-center text-sm font-semibold text-gray-500">Nenhuma foto publicada no momento.</p>}
+            {gallery.length === 0 && <p className="mt-8 text-center text-sm font-semibold text-gray-500">{sources.gallery === "unavailable" ? "Não foi possível carregar a galeria agora." : "Nenhuma foto publicada no momento."}</p>}
           </div>
         </section>
         <section id="sobre" className="section">
@@ -221,6 +226,7 @@ export default async function Home() {
                 </details>
               ))}
             </div>
+            {sources.faqs === "unavailable" && <p role="status" className="mt-7 text-center text-sm font-semibold text-gray-600">As dúvidas frequentes estão indisponíveis agora.</p>}
           </div>
         </section>
         <section id="localizacao" className="section">
@@ -284,7 +290,7 @@ export default async function Home() {
         </section>
       </main>
       <a
-        className="fixed bottom-5 right-5 z-40 grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl hover:scale-105"
+        className="bg-whatsapp-accessible fixed bottom-5 right-5 z-40 grid h-14 w-14 place-items-center rounded-full text-white shadow-xl hover:scale-105"
         aria-label={`Falar com a ${business.shortName} pelo WhatsApp`}
         target="_blank"
         rel="noopener noreferrer"
@@ -296,6 +302,6 @@ export default async function Home() {
         <MessageCircle />
       </a>
       <Footer business={business} content={content.footer} />
-    </>
+    </div>
   );
 }

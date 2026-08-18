@@ -2,13 +2,13 @@
 
 import { useActionState } from "react";
 import type { BusinessSettingsRow } from "@/data/repositories/business.repository";
-import { FieldError, FormFeedback } from "@/features/admin/components/form-feedback";
+import { FieldError, FormFeedback, fieldAccessibility } from "@/features/admin/components/form-feedback";
 import { initialAdminActionResult } from "@/features/admin/mutations/types";
 import { updateHomeContentAction } from "./actions";
 
 function Field({ label, name, value, maxLength, state, area = false, optional = false }: { label: string; name: string; value: string | null; maxLength: number; state: typeof initialAdminActionResult; area?: boolean; optional?: boolean }) {
-  const input = area ? <textarea className="field mt-1" name={name} defaultValue={value ?? ""} maxLength={maxLength} rows={3} required={!optional} /> : <input className="field mt-1" name={name} defaultValue={value ?? ""} maxLength={maxLength} required={!optional} />;
-  return <label className="block text-sm font-extrabold text-olive">{label}{optional && <span className="font-semibold text-stone-500"> (opcional)</span>}{input}<FieldError state={state} name={name} /></label>;
+  const input = area ? <textarea {...fieldAccessibility(state, name)} className="field mt-1" name={name} defaultValue={value ?? ""} maxLength={maxLength} rows={3} required={!optional} /> : <input {...fieldAccessibility(state, name)} className="field mt-1" name={name} defaultValue={value ?? ""} maxLength={maxLength} required={!optional} />;
+  return <div><label htmlFor={name} className="block text-sm font-extrabold text-olive">{label}{optional && <span className="font-semibold text-stone-500"> (opcional)</span>}</label>{input}<FieldError state={state} name={name} /></div>;
 }
 
 export function ContentForm({ row }: { row: BusinessSettingsRow }) {
