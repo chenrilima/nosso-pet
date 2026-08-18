@@ -1,9 +1,10 @@
 import type { Database } from "@/types/database";
 import { repositoryError, repositoryWriteError, type DatabaseClient } from "./shared";
 export type ServiceRow = Database["public"]["Tables"]["services"]["Row"];
-export type ServiceWriteValues = { name: string; slug: string; description: string; icon_key: string; pricing_type: Database["public"]["Enums"]["pricing_type"]; price: string | null; price_from: string | null; duration_minutes: number | null; is_active: boolean; is_bookable: boolean; is_featured: boolean; sort_order: number };
-async function listServiceRows(client: DatabaseClient, bookableOnly: boolean): Promise<ServiceRow[]> {
-  let query = client.from("services").select("*").eq("is_active", true);
+export type PublicServiceRow = Pick<ServiceRow, "id" | "name" | "slug" | "description" | "icon_key" | "pricing_type" | "price" | "price_from" | "is_bookable" | "sort_order">;
+export type ServiceWriteValues = { name: string; slug: string; description: string; icon_key: string; pricing_type: Database["public"]["Enums"]["pricing_type"]; price: string | null; price_from: string | null; is_active: boolean; is_bookable: boolean; sort_order: number };
+async function listServiceRows(client: DatabaseClient, bookableOnly: boolean): Promise<PublicServiceRow[]> {
+  let query = client.from("services").select("id, name, slug, description, icon_key, pricing_type, price, price_from, is_bookable, sort_order").eq("is_active", true);
   if (bookableOnly) query = query.eq("is_bookable", true);
   const { data, error } = await query.order("sort_order").order("name");
   if (error) throw repositoryError("services", error);

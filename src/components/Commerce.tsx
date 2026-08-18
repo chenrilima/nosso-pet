@@ -1,11 +1,13 @@
 "use client";
-import Image from "next/image";
-import { useState } from "react";
-import { Car, Minus, Plus, Send, ShoppingBag, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { Car, Minus, Plus, Send, ShoppingBag, Trash2, X } from "lucide-react";
 import { cartMessage, taxiMessage, whatsappUrl } from "@/lib/whatsapp";
-import type { Product } from "@/types/domain";
+import { addPurchaseIntent, createPurchaseIntent, setPurchaseIntentQuantity, type SelectionValues } from "@/lib/purchase-intents";
+import { TAXIPET_SLUG } from "@/lib/taxipet";
+import type { CatalogCategory, HomeContent, PurchaseIntent, Service } from "@/types/domain";
 
-export function TaxiPet({ whatsappRaw }: { whatsappRaw: string }) {
+export function TaxiPet({ service, content, price, whatsappRaw }: { service?: Service; content: HomeContent["taxipet"]; price: string | null; whatsappRaw: string }) {
   const [open, setOpen] = useState(false);
   const [d, setD] = useState({
     name: "",
@@ -17,6 +19,7 @@ export function TaxiPet({ whatsappRaw }: { whatsappRaw: string }) {
   });
   const update = (k: string, v: string) => setD((x) => ({ ...x, [k]: v }));
   const valid = Object.values(d).every(Boolean);
+  if (!service || service.slug !== TAXIPET_SLUG) return null;
   return (
     <section className="section bg-orange-50">
       <div className="container grid items-center gap-10 lg:grid-cols-2">
@@ -25,16 +28,16 @@ export function TaxiPet({ whatsappRaw }: { whatsappRaw: string }) {
             <Car size={32} />
           </span>
           <p className="eyebrow">TaxiPet</p>
-          <h2 className="title mt-2">Seu pet vai e volta com conforto.</h2>
+          <h2 className="title mt-2">{content.title}</h2>
           <p className="mt-5 max-w-xl text-lg text-gray-600">
-            Consulte a disponibilidade do nosso transporte e facilite a rotina
-            de cuidados do seu melhor amigo.
+            {service.description}
           </p>
+          {(content.region || price) && <p className="mt-4 font-black text-olive">{[content.region, price].filter(Boolean).join(" · ")}</p>}
           <button
             className="btn btn-primary mt-7"
             onClick={() => setOpen(!open)}
           >
-            {open ? "Fechar formulário" : "Consultar TaxiPet"}
+            {open ? "Fechar formulário" : content.cta}
           </button>
         </div>
         {open ? (
@@ -42,7 +45,7 @@ export function TaxiPet({ whatsappRaw }: { whatsappRaw: string }) {
             className="card grid gap-4 p-6 sm:grid-cols-2"
             onSubmit={(e) => {
               e.preventDefault();
-              window.open(whatsappUrl(taxiMessage(d), whatsappRaw), "_blank");
+              window.open(whatsappUrl(taxiMessage(d, { region: content.region, price }), whatsappRaw), "_blank");
             }}
           >
             {Object.entries({
@@ -92,46 +95,91 @@ export function TaxiPet({ whatsappRaw }: { whatsappRaw: string }) {
               <li>✓ Escolha o serviço e a data desejada</li>
               <li>✓ A equipe confirma disponibilidade pelo WhatsApp</li>
             </ul>
-            <p className="relative mt-6 text-sm font-bold text-brand">
-              O valor e a região de atendimento são confirmados pela equipe.
-            </p>
+            {content.note && <p className="relative mt-6 text-sm font-bold text-brand">{content.note}</p>}
           </div>
         )}
       </div>
     </section>
   );
 }
-type CartItem = Product & { quantity: number };
-export const addCartItem = (cart: CartItem[], product: Product): CartItem[] =>
-  cart.some((item) => item.id === product.id)
-    ? cart.map((item) =>
-        item.id === product.id
-          ? { ...item, quantity: item.quantity + 1 }
-          : item,
-      )
-    : [...cart, { ...product, quantity: 1 }];
-
-export const setCartQuantity = (
-  cart: CartItem[],
-  id: string,
-  quantity: number,
-): CartItem[] =>
-  cart
-    .map((item) => (item.id === id ? { ...item, quantity } : item))
-    .filter((item) => item.quantity > 0);
+const focusableSelector = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+export function focusTrapDestination(shiftKey: boolean, activeAt: "title" | "first" | "last" | "other") {
+  if (shiftKey && (activeAt === "title" || activeAt === "first")) return "last";
+  if (!shiftKey && activeAt === "last") return "first";
+  return null;
+}
+export function cartQuantityLabel(categoryName: string, quantity: number, direction: "increase" | "decrease") {
+  if (direction === "increase") return `Aumentar quantidade de ${categoryName}`;
+  return quantity === 1 ? `Remover ${categoryName}` : `Diminuir quantidade de ${categoryName}`;
+}
+function CatalogDialog({ category, onClose, onAdd }: { category: CatalogCategory; onClose: () => void; onAdd: (intent: PurchaseIntent) => void }) {
+  const [values, setValues] = useState<SelectionValues>({});
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    titleRef.current?.focus();
+    const page = document.querySelector<HTMLElement>("#public-page");
+    if (page) page.inert = true;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") return onClose();
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(focusableSelector));
+      if (!focusable.length) return event.preventDefault();
+      const first = focusable[0];
+      const last = focusable.at(-1)!;
+      const activeAt = document.activeElement === titleRef.current ? "title" : document.activeElement === first ? "first" : document.activeElement === last ? "last" : "other";
+      const destination = focusTrapDestination(event.shiftKey, activeAt);
+      if (destination) { event.preventDefault(); (destination === "first" ? first : last).focus(); }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => { document.removeEventListener("keydown", onKeyDown); if (page) page.inert = false; };
+  }, [onClose]);
+  const intent = createPurchaseIntent(category, values);
+  return createPortal(
+    <div className="fixed inset-0 z-50 grid items-end bg-black/50 p-0 sm:place-items-center sm:p-5" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="catalog-dialog-title" className="max-h-[92dvh] w-full overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl sm:max-w-2xl sm:rounded-3xl sm:p-7">
+        <div className="flex items-start justify-between gap-4">
+          <div><p className="eyebrow">Monte sua consulta</p><h3 ref={titleRef} tabIndex={-1} id="catalog-dialog-title" className="mt-1 text-2xl font-black text-olive">{category.name}</h3><p className="mt-2 text-sm text-gray-600">Escolha as opções obrigatórias e, se quiser, as demais.</p></div>
+          <button type="button" aria-label="Fechar opções" onClick={onClose} className="grid size-11 shrink-0 place-items-center rounded-full border border-stone-200 text-olive"><X size={20} /></button>
+        </div>
+        <div className="mt-6 space-y-6">
+          {category.optionGroups.map((group, index) => (
+            <fieldset key={group.id}>
+              <legend className="font-black text-olive"><span className="mr-2 text-brand">{index + 1}.</span>{group.name} {!group.isRequired && <span className="text-xs text-stone-500">(opcional)</span>}</legend>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {group.options.filter((option) => option.isActive).sort((a, b) => a.sortOrder - b.sortOrder).map((option) => {
+                  const selected = values[group.id] === option.id;
+                  return <label key={option.id} className={`flex min-h-11 cursor-pointer items-center rounded-full border px-4 py-2 text-sm font-bold transition ${selected ? "border-brand-strong bg-brand-strong text-white" : "border-stone-200 bg-white text-olive hover:border-brand-strong"}`}><input className="sr-only" type="radio" name={group.id} value={option.id} checked={selected} onChange={() => setValues((current) => ({ ...current, [group.id]: option.id }))} />{option.name}</label>;
+                })}
+              </div>{group.options.length === 0 && <p className="mt-2 text-sm font-semibold text-stone-500">Nenhuma opção disponível neste grupo.</p>}
+            </fieldset>
+          ))}
+        </div>
+        <button type="button" disabled={!intent} onClick={() => { if (intent) { onAdd(intent); onClose(); } }} className="btn btn-primary mt-7 w-full disabled:cursor-not-allowed disabled:opacity-40"><Plus size={18} />Adicionar à consulta</button>
+      </div>
+    </div>
+  , document.body);
+}
 
 export function Products({
-  products,
+  catalog,
+  unavailable = false,
   whatsappRaw,
 }: {
-  products: Product[];
+  catalog: CatalogCategory[];
+  unavailable?: boolean;
   whatsappRaw: string;
 }) {
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const add = (product: Product) =>
-    setCart((cart) => addCartItem(cart, product));
+  const [cart, setCart] = useState<PurchaseIntent[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<CatalogCategory | null>(null);
+  const openerRef = useRef<HTMLButtonElement | null>(null);
+  const closeDialog = () => {
+    setSelectedCategory(null);
+    requestAnimationFrame(() => openerRef.current?.focus());
+  };
+  const add = (intent: PurchaseIntent) => setCart((current) => addPurchaseIntent(current, intent));
   const qty = (id: string, n: number) =>
-    setCart((cart) => setCartQuantity(cart, id, n));
+    setCart((current) => setPurchaseIntentQuantity(current, id, n));
   return (
     <section id="produtos" className="section">
       <div className="container">
@@ -140,7 +188,7 @@ export function Products({
           <div>
             <h2 className="title mt-2">Produtos para o seu pet</h2>
             <p className="mt-4 text-gray-600">
-              Adicione itens e consulte disponibilidade e valores pelo WhatsApp.
+              Conte o que procura e consulte disponibilidade e valores pelo WhatsApp.
             </p>
           </div>
           <span className="rounded-full bg-orange-50 px-4 py-2 font-black text-brand">
@@ -149,57 +197,35 @@ export function Products({
           </span>
         </div>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
-          {products.map((p, i) => (
-            <article className="card flex flex-col overflow-hidden" key={p.id}>
-              <div
-                className={`grid h-32 place-items-center ${["bg-orange-100", "bg-amber-50", "bg-lime-50", "bg-sky-50", "bg-purple-50"][i]}`}
-              >
-                {p.imageUrl ? (
-                  <Image
-                    src={p.imageUrl}
-                    alt={p.name}
-                    width={320}
-                    height={128}
-                    className="h-32 w-full object-cover"
-                  />
-                ) : (
-                  <ShoppingBag className="text-olive/50" size={46} />
-                )}
-              </div>
+          {catalog.map((category, i) => (
+            <article className="card flex flex-col overflow-hidden" key={category.id}>
+              <div className={`grid h-32 place-items-center ${["bg-orange-100", "bg-amber-50", "bg-lime-50", "bg-sky-50", "bg-purple-50"][i % 5]}`}><ShoppingBag className="text-olive/50" size={46} /></div>
               <div className="flex flex-1 flex-col p-5">
-                <small className="font-black uppercase text-brand">
-                  {p.category.name}
-                </small>
-                <h3 className="mt-2 font-black">{p.name}</h3>
-                <p className="mt-2 flex-1 text-sm text-gray-500">
-                  {p.description}
-                </p>
-                <button
-                  onClick={() => add(p)}
-                  className="btn btn-secondary mt-5 text-sm"
-                >
-                  <Plus size={16} />
-                  Adicionar
-                </button>
+                <small className="font-black uppercase text-brand">Categoria</small>
+                <h3 className="mt-2 font-black">{category.name}</h3>
+                <p className="mt-2 flex-1 text-sm text-gray-500">{category.description}</p>
+                <button disabled={category.optionGroups.length === 0} onClick={(event) => { openerRef.current = event.currentTarget; setSelectedCategory(category); }} className="btn btn-secondary mt-5 text-sm disabled:cursor-not-allowed disabled:opacity-50">{category.optionGroups.length ? "Ver opções" : "Opções em breve"}</button>
               </div>
             </article>
           ))}
         </div>
+        {unavailable && <p role="status" className="mt-8 text-center font-semibold text-gray-600">Não foi possível carregar as opções de produtos agora.</p>}
+        {!unavailable && catalog.length === 0 && <p className="mt-8 text-center font-semibold text-gray-600">Nenhuma opção de produto disponível no momento.</p>}
         {cart.length > 0 && (
           <div className="card mt-8 p-6">
             <h3 className="text-xl font-black">Sua sacola</h3>
             <div className="mt-4 divide-y">
               {cart.map((x) => (
                 <div
-                  className="flex items-center justify-between gap-3 py-3"
+                  className="flex min-w-0 flex-wrap items-center justify-between gap-3 py-3"
                   key={x.id}
                 >
-                  <span className="font-bold">{x.name}</span>
-                  <div className="flex items-center gap-2">
+                  <div className="min-w-0 flex-1 basis-48"><p className="font-bold">{x.categoryName}</p><p className="mt-1 break-words text-sm text-gray-500">{x.selections.map((selection) => selection.optionName).join(" • ")}</p></div>
+                  <div className="ml-auto flex shrink-0 items-center gap-1">
                     <button
-                      aria-label="Diminuir"
+                      aria-label={cartQuantityLabel(x.categoryName, x.quantity, "decrease")}
                       onClick={() => qty(x.id, x.quantity - 1)}
-                      className="rounded-full border p-2"
+                      className="grid size-11 place-items-center rounded-full border"
                     >
                       {x.quantity === 1 ? (
                         <Trash2 size={15} />
@@ -209,9 +235,9 @@ export function Products({
                     </button>
                     <b>{x.quantity}</b>
                     <button
-                      aria-label="Aumentar"
+                      aria-label={cartQuantityLabel(x.categoryName, x.quantity, "increase")}
                       onClick={() => qty(x.id, x.quantity + 1)}
-                      className="rounded-full border p-2"
+                      className="grid size-11 place-items-center rounded-full border"
                     >
                       <Plus size={15} />
                     </button>
@@ -221,15 +247,17 @@ export function Products({
             </div>
             <a
               target="_blank"
+              rel="noopener noreferrer"
               href={whatsappUrl(cartMessage(cart), whatsappRaw)}
               className="btn btn-primary mt-5 w-full"
             >
               <Send size={18} />
-              Solicitar pedido pelo WhatsApp
+              Consultar disponibilidade pelo WhatsApp
             </a>
           </div>
         )}
       </div>
+      {selectedCategory && <CatalogDialog category={selectedCategory} onClose={closeDialog} onAdd={add} />}
     </section>
   );
 }

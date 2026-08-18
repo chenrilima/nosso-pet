@@ -1,10 +1,12 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { getSupabaseEnvironment } from "./env";
 
 export function createPublicClient() {
+  const environment = getSupabaseEnvironment();
   return createSupabaseClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    environment.url,
+    environment.publishableKey,
     { auth: { persistSession: false, autoRefreshToken: false } },
   );
 }

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createCategory, deleteCategory, toggleCategory, updateCategory } from "@/data/repositories/categories.repository";
+import { createCategory, deleteCategory, getAdminCategory, toggleCategory, updateCategory } from "@/data/repositories/categories.repository";
 import { RepositoryError } from "@/data/repositories/shared";
 import { requireAdmin } from "@/features/admin/auth/server";
 import type { AdminActionResult } from "@/features/admin/mutations/types";
@@ -29,7 +29,7 @@ export async function updateCategoryAction(id: string, _previous: AdminActionRes
   if (invalidId(id)) return { ok: false, message: "Categoria inválida." };
   const validation = validateCategory(data);
   if (!validation.values) return { ok: false, message: "Revise os campos destacados.", fieldErrors: validation.fieldErrors };
-  try { await updateCategory(await createClient(), id, validation.values); refresh(); return { ok: true, message: "Categoria atualizada com sucesso." }; }
+  try { const client = await createClient(); if (!await getAdminCategory(client, id)) return { ok: false, message: "Categoria não encontrada." }; await updateCategory(client, id, validation.values); refresh(); return { ok: true, message: "Categoria atualizada com sucesso." }; }
   catch (error) { return categoryFailure(error); }
 }
 
@@ -37,7 +37,7 @@ export async function toggleCategoryAction(id: string, isActive: boolean, _previ
   void _previous;
   await requireAdmin();
   if (invalidId(id)) return { ok: false, message: "Categoria inválida." };
-  try { await toggleCategory(await createClient(), id, isActive); refresh(); return { ok: true, message: isActive ? "Categoria ativada." : "Categoria desativada. Ela deixa de aparecer no site." }; }
+  try { const client = await createClient(); if (!await getAdminCategory(client, id)) return { ok: false, message: "Categoria não encontrada." }; await toggleCategory(client, id, isActive); refresh(); return { ok: true, message: isActive ? "Categoria ativada." : "Categoria desativada. Ela deixa de aparecer no site." }; }
   catch (error) { return categoryFailure(error); }
 }
 
@@ -46,8 +46,9 @@ export async function deleteCategoryAction(id: string, _previous: AdminActionRes
   await requireAdmin();
   if (invalidId(id)) return { ok: false, message: "Categoria inválida." };
   try {
-    const result = await deleteCategory(await createClient(), id);
-    if (result === "in_use") return { ok: false, message: "Não é possível excluir esta categoria porque existem produtos vinculados." };
+    const client = await createClient(); if (!await getAdminCategory(client, id)) return { ok: false, message: "Categoria não encontrada." };
+    const result = await deleteCategory(client, id);
+    if (result === "in_use") return { ok: false, message: "Não é possível excluir esta categoria porque existem grupos ou opções vinculados." };
     refresh(); return { ok: true, message: "Categoria excluída permanentemente." };
   } catch (error) { return categoryFailure(error); }
 }

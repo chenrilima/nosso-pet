@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.15"
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -42,9 +37,24 @@ export type Database = {
       business_settings: {
         Row: {
           address_line: string
+          about_description: string
+          about_feature_one_title: string
+          about_feature_two_title: string
+          about_title: string
           city: string
           created_at: string
           district: string
+          footer_contact_title: string
+          footer_description: string
+          footer_location_title: string
+          hero_description: string
+          hero_highlight: string
+          hero_image_path: string | null
+          hero_position_x: number
+          hero_position_y: number
+          hero_primary_cta: string
+          hero_secondary_cta: string
+          hero_title: string
           hours: Json | null
           id: string
           instagram_handle: string
@@ -58,15 +68,34 @@ export type Database = {
           short_name: string
           singleton_key: boolean
           state: string
+          taxipet_cta: string
+          taxipet_note: string | null
+          taxipet_region: string | null
+          taxipet_title: string
           updated_at: string
           whatsapp: string
           whatsapp_raw: string
         }
         Insert: {
           address_line: string
+          about_description?: string
+          about_feature_one_title?: string
+          about_feature_two_title?: string
+          about_title?: string
           city: string
           created_at?: string
           district: string
+          footer_contact_title?: string
+          footer_description?: string
+          footer_location_title?: string
+          hero_description?: string
+          hero_highlight?: string
+          hero_image_path?: string | null
+          hero_position_x?: number
+          hero_position_y?: number
+          hero_primary_cta?: string
+          hero_secondary_cta?: string
+          hero_title?: string
           hours?: Json | null
           id?: string
           instagram_handle: string
@@ -80,15 +109,34 @@ export type Database = {
           short_name: string
           singleton_key?: boolean
           state: string
+          taxipet_cta?: string
+          taxipet_note?: string | null
+          taxipet_region?: string | null
+          taxipet_title?: string
           updated_at?: string
           whatsapp: string
           whatsapp_raw: string
         }
         Update: {
           address_line?: string
+          about_description?: string
+          about_feature_one_title?: string
+          about_feature_two_title?: string
+          about_title?: string
           city?: string
           created_at?: string
           district?: string
+          footer_contact_title?: string
+          footer_description?: string
+          footer_location_title?: string
+          hero_description?: string
+          hero_highlight?: string
+          hero_image_path?: string | null
+          hero_position_x?: number
+          hero_position_y?: number
+          hero_primary_cta?: string
+          hero_secondary_cta?: string
+          hero_title?: string
           hours?: Json | null
           id?: string
           instagram_handle?: string
@@ -102,6 +150,10 @@ export type Database = {
           short_name?: string
           singleton_key?: boolean
           state?: string
+          taxipet_cta?: string
+          taxipet_note?: string | null
+          taxipet_region?: string | null
+          taxipet_title?: string
           updated_at?: string
           whatsapp?: string
           whatsapp_raw?: string
@@ -111,7 +163,9 @@ export type Database = {
       categories: {
         Row: {
           created_at: string
+          description: string
           id: string
+          image_path: string | null
           is_active: boolean
           name: string
           slug: string
@@ -120,7 +174,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string
           id?: string
+          image_path?: string | null
           is_active?: boolean
           name: string
           slug: string
@@ -129,7 +185,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string
           id?: string
+          image_path?: string | null
           is_active?: boolean
           name?: string
           slug?: string
@@ -137,6 +195,18 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      product_option_groups: {
+        Row: { category_id: string; created_at: string; id: string; is_active: boolean; is_required: boolean; name: string; sort_order: number; updated_at: string }
+        Insert: { category_id: string; created_at?: string; id?: string; is_active?: boolean; is_required?: boolean; name: string; sort_order?: number; updated_at?: string }
+        Update: { category_id?: string; created_at?: string; id?: string; is_active?: boolean; is_required?: boolean; name?: string; sort_order?: number; updated_at?: string }
+        Relationships: [{ foreignKeyName: "product_option_groups_category_id_fkey"; columns: ["category_id"]; isOneToOne: false; referencedRelation: "categories"; referencedColumns: ["id"] }]
+      }
+      product_options: {
+        Row: { created_at: string; group_id: string; id: string; image_path: string | null; is_active: boolean; name: string; sort_order: number; updated_at: string }
+        Insert: { created_at?: string; group_id: string; id?: string; image_path?: string | null; is_active?: boolean; name: string; sort_order?: number; updated_at?: string }
+        Update: { created_at?: string; group_id?: string; id?: string; image_path?: string | null; is_active?: boolean; name?: string; sort_order?: number; updated_at?: string }
+        Relationships: [{ foreignKeyName: "product_options_group_id_fkey"; columns: ["group_id"]; isOneToOne: false; referencedRelation: "product_option_groups"; referencedColumns: ["id"] }]
       }
       faqs: {
         Row: {
@@ -175,6 +245,8 @@ export type Database = {
           created_at: string
           id: string
           is_published: boolean
+          position_x: number
+          position_y: number
           sort_order: number
           storage_path: string
           updated_at: string
@@ -185,6 +257,8 @@ export type Database = {
           created_at?: string
           id?: string
           is_published?: boolean
+          position_x?: number
+          position_y?: number
           sort_order?: number
           storage_path: string
           updated_at?: string
@@ -195,6 +269,8 @@ export type Database = {
           created_at?: string
           id?: string
           is_published?: boolean
+          position_x?: number
+          position_y?: number
           sort_order?: number
           storage_path?: string
           updated_at?: string
@@ -208,6 +284,8 @@ export type Database = {
           description: string
           id: string
           image_path: string | null
+          image_position_x: number
+          image_position_y: number
           is_active: boolean
           is_featured: boolean
           name: string
@@ -222,6 +300,8 @@ export type Database = {
           description: string
           id?: string
           image_path?: string | null
+          image_position_x?: number
+          image_position_y?: number
           is_active?: boolean
           is_featured?: boolean
           name: string
@@ -236,6 +316,8 @@ export type Database = {
           description?: string
           id?: string
           image_path?: string | null
+          image_position_x?: number
+          image_position_y?: number
           is_active?: boolean
           is_featured?: boolean
           name?: string

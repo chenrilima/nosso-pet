@@ -15,49 +15,58 @@ import { Header } from "@/components/Header";
 import { Booking } from "@/components/Booking";
 import { Products, TaxiPet } from "@/components/Commerce";
 import { Footer } from "@/components/Footer";
-import { fallbackBusiness } from "@/data/fallbacks/public-site.fallback";
-import { getPublicSiteDataWithFallback } from "@/data/queries/public-site.query";
+import { getPublicSiteDataSafe } from "@/data/queries/public-site.query";
 import { galleryForPresentation } from "@/lib/gallery-presentation";
+import { presentBusinessHours } from "@/lib/business-hours";
+import { presentServicePrice } from "@/lib/pricing";
 import { resolveServiceIcon } from "@/lib/service-icons";
-import { whatsappUrl } from "@/lib/whatsapp";
+import { generalInquiryMessage, whatsappUrl } from "@/lib/whatsapp";
+import { getPublicCatalog } from "@/data/queries/catalog.query";
+import { imageObjectPosition } from "@/lib/image-position";
+import { resolveTaxiPetService } from "@/lib/taxipet";
 
 export const dynamic = "force-static";
 export const revalidate = 60;
 
 export default async function Home() {
-  const { data } = await getPublicSiteDataWithFallback();
-  const business = data.business ?? fallbackBusiness;
+  const [{ data, sources }, catalogResult] = await Promise.all([getPublicSiteDataSafe(), getPublicCatalog()]);
+  if (!catalogResult.ok) console.error(JSON.stringify({ event: "public_data_unavailable", failures: [catalogResult.error] }));
+  const catalog = catalogResult.ok ? catalogResult.data : [];
+  const taxiPetService = resolveTaxiPetService(data.services);
+  if (!data.business) throw new Error("Configurações comerciais indisponíveis.");
+  const business = data.business;
+  const content = business.content;
   const gallery = galleryForPresentation(data.gallery);
+  const businessHours = presentBusinessHours(business.hours);
 
   return (
-    <>
-      <Header whatsappRaw={business.whatsappRaw} />
+    <div id="public-page">
+      <Header businessName={business.shortName} whatsappRaw={business.whatsappRaw} />
       <main id="top">
         <section className="overflow-hidden bg-cream">
           <div className="container grid min-h-[680px] items-center gap-10 py-16 lg:grid-cols-[.85fr_1.15fr]">
             <div>
-              <p className="eyebrow">Banho e tosa em Taboão da Serra</p>
+              <p className="eyebrow">Banho e tosa em {business.address.city}</p>
               <h1 className="mt-3 text-[clamp(2.8rem,6vw,5.7rem)] font-black leading-[.93] tracking-[-.055em] text-olive">
-                Seu pet cuidado como parte da{" "}
-                <span className="text-brand">família.</span>
+                {content.hero.title}{" "}
+                <span className="text-brand">{content.hero.highlight}</span>
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-8 text-gray-600">
-                Banho, tosa, cuidados, produtos e muito carinho para o seu
-                melhor amigo em Taboão da Serra.
+                {content.hero.description}
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <a href="#agendamento" className="btn btn-primary">
-                  Agendar atendimento
+                  {content.hero.primaryCta}
                   <ArrowRight size={18} />
                 </a>
                 <a href="#servicos" className="btn btn-secondary">
-                  Conhecer serviços
+                  {content.hero.secondaryCta}
                 </a>
               </div>
               <div className="mt-9 flex flex-wrap gap-4 text-sm font-bold text-olive/70">
                 <span>
                   <MapPin className="mr-1 inline text-brand" size={17} />
-                  Taboão da Serra
+                  {business.address.city}
                 </span>
                 <span>
                   <Sparkles className="mr-1 inline text-brand" size={17} />
@@ -77,11 +86,13 @@ export default async function Home() {
               <div className="absolute -inset-5 rotate-3 rounded-[3rem] bg-brand/10" />
               <Image
                 priority
-                src="/images/hero-pets.png"
+                src={business.heroImageUrl ?? "/images/hero-pets.png"}
                 width={1456}
                 height={1086}
                 alt="Cães bem cuidados em ambiente de banho e tosa"
                 className="relative aspect-[4/3] rounded-[2.5rem] object-cover shadow-soft"
+                style={{ objectPosition: imageObjectPosition(business.heroImagePosition) }}
+                sizes="(max-width: 1023px) calc(100vw - 32px), 53vw"
               />
             </div>
           </div>
@@ -99,6 +110,7 @@ export default async function Home() {
             <div className="mt-11 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {data.services.map((service) => {
                 const Icon = resolveServiceIcon(service.iconKey);
+                const price = presentServicePrice(service);
                 return (
                 <article
                   key={service.id}
@@ -111,18 +123,24 @@ export default async function Home() {
                   <p className="mt-2 text-sm leading-6 text-gray-500">
                     {service.description}
                   </p>
+                  {price && (
+                    <p className="mt-4 font-black text-olive">{price}</p>
+                  )}
                 </article>
                 );
               })}
             </div>
+            {sources.services === "unavailable" && <p role="status" className="mt-8 text-center font-semibold text-gray-600">Não foi possível carregar os serviços agora.</p>}
+            {sources.services === "remote" && data.services.length === 0 && <p className="mt-8 text-center font-semibold text-gray-600">Nenhum serviço disponível no momento.</p>}
           </div>
         </section>
         <Booking
           services={data.bookableServices}
           whatsappRaw={business.whatsappRaw}
+          businessName={business.shortName}
         />
-        <TaxiPet whatsappRaw={business.whatsappRaw} />
-        <Products products={data.products} whatsappRaw={business.whatsappRaw} />
+        <TaxiPet service={taxiPetService} content={content.taxipet} price={taxiPetService ? presentServicePrice(taxiPetService) : null} whatsappRaw={business.whatsappRaw} />
+        <Products catalog={catalog} unavailable={!catalogResult.ok} whatsappRaw={business.whatsappRaw} />
         <section id="galeria" className="section bg-cream">
           <div className="container">
             <div className="flex flex-wrap items-end justify-between gap-4">
@@ -133,59 +151,56 @@ export default async function Home() {
               <a
                 href={business.instagram.url}
                 target="_blank"
+                rel="noopener noreferrer"
                 className="btn btn-secondary"
               >
                 <Instagram size={18} />
                 Ver Instagram
               </a>
             </div>
-            <div className="mt-10 grid h-[620px] grid-cols-2 gap-4 md:grid-cols-4 md:grid-rows-2">
+            <div className="mt-10 grid auto-rows-[260px] grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
               {gallery.map((image, i) => (
-                <div
+                <figure
                   key={image.id}
-                  className={`${i === 0 ? "row-span-2" : ""} overflow-hidden rounded-3xl bg-white`}
+                  className={`${i === 0 && gallery.length > 1 ? "sm:row-span-2" : ""} relative overflow-hidden rounded-3xl bg-white`}
                 >
                   <Image
                     src={image.imageUrl}
                     alt={image.altText}
                     width={900}
                     height={700}
-                    className={`h-full w-full object-cover transition duration-500 hover:scale-105 ${image.objectPosition ?? ""}`}
+                    className="h-full w-full object-cover transition duration-500 hover:scale-105"
+                    style={image.imagePosition ? { objectPosition: imageObjectPosition(image.imagePosition) } : undefined}
+                    sizes="(max-width: 639px) calc(100vw - 32px), (max-width: 767px) calc(50vw - 24px), 25vw"
                   />
-                </div>
+                  {image.caption && <figcaption className="absolute inset-x-0 bottom-0 bg-olive/85 px-4 py-3 text-sm font-bold text-white">{image.caption}</figcaption>}
+                </figure>
               ))}
             </div>
-            {data.gallery.length === 0 && (
-              <p className="mt-4 text-xs text-gray-500">
-                Imagens ilustrativas nesta primeira versão; substitua pelas
-                fotos reais do estabelecimento em public/images.
-              </p>
-            )}
+            {gallery.length === 0 && <p className="mt-8 text-center text-sm font-semibold text-gray-500">{sources.gallery === "unavailable" ? "Não foi possível carregar a galeria agora." : "Nenhuma foto publicada no momento."}</p>}
           </div>
         </section>
         <section id="sobre" className="section">
           <div className="container grid gap-12 lg:grid-cols-2">
             <div>
-              <p className="eyebrow">Sobre a Nosso Pet</p>
+              <p className="eyebrow">Sobre a {business.shortName}</p>
               <h2 className="title mt-2">
-                Cuidado, carinho e confiança em cada atendimento.
+                {content.about.title}
               </h2>
             </div>
             <div className="text-lg leading-8 text-gray-600">
               <p>
-                A Nosso Pet está perto das famílias de Taboão da Serra,
-                oferecendo uma rotina de cuidados mais tranquila para tutores e
-                animais.
+                {content.about.description}
               </p>
               <div className="mt-7 grid gap-4 sm:grid-cols-2">
                 <div className="card p-5">
                   <Heart className="text-brand" />
-                  <b className="mt-3 block text-olive">Atendimento acolhedor</b>
+                  <b className="mt-3 block text-olive">{content.about.featureOneTitle}</b>
                 </div>
                 <div className="card p-5">
                   <ShieldCheck className="text-brand" />
                   <b className="mt-3 block text-olive">
-                    Informação com clareza
+                    {content.about.featureTwoTitle}
                   </b>
                 </div>
               </div>
@@ -211,13 +226,14 @@ export default async function Home() {
                 </details>
               ))}
             </div>
+            {sources.faqs === "unavailable" && <p role="status" className="mt-7 text-center text-sm font-semibold text-gray-600">As dúvidas frequentes estão indisponíveis agora.</p>}
           </div>
         </section>
         <section id="localizacao" className="section">
           <div className="container grid gap-8 lg:grid-cols-2">
             <div>
               <p className="eyebrow">Localização</p>
-              <h2 className="title mt-2">Estamos em Taboão da Serra</h2>
+              <h2 className="title mt-2">Estamos em {business.address.city}</h2>
               <p className="mt-5 text-lg leading-8 text-gray-600">
                 {business.address.line}
                 <br />
@@ -230,6 +246,7 @@ export default async function Home() {
               <div className="mt-7 flex flex-wrap gap-3">
                 <a
                   target="_blank"
+                  rel="noopener noreferrer"
                   href={business.maps.url}
                   className="btn btn-primary"
                 >
@@ -246,13 +263,24 @@ export default async function Home() {
               </div>
               <div className="mt-7 rounded-2xl bg-cream p-5">
                 <b>Horários de funcionamento</b>
-                <p className="mt-1 text-sm text-gray-600">
-                  Consulte o funcionamento e a disponibilidade pelo WhatsApp.
-                </p>
+                {businessHours ? (
+                  <dl className="mt-3 space-y-1 text-sm text-gray-600">
+                    {businessHours.map(({ day, label, value }) => (
+                      <div key={day} className="flex justify-between gap-4">
+                        <dt>{label}</dt>
+                        <dd className="font-semibold text-gray-700">{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : (
+                  <p className="mt-1 text-sm text-gray-600">
+                    Consulte o funcionamento e a disponibilidade pelo WhatsApp.
+                  </p>
+                )}
               </div>
             </div>
             <iframe
-              title="Mapa da Nosso Pet em Taboão da Serra"
+              title={`Mapa da ${business.shortName} em ${business.address.city}`}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               src={business.maps.embedUrl}
@@ -262,17 +290,18 @@ export default async function Home() {
         </section>
       </main>
       <a
-        className="fixed bottom-5 right-5 z-40 grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl hover:scale-105"
-        aria-label="Falar com a Nosso Pet pelo WhatsApp"
+        className="bg-whatsapp-accessible fixed bottom-5 right-5 z-40 grid h-14 w-14 place-items-center rounded-full text-white shadow-xl hover:scale-105"
+        aria-label={`Falar com a ${business.shortName} pelo WhatsApp`}
         target="_blank"
+        rel="noopener noreferrer"
         href={whatsappUrl(
-          "Olá! Vim pelo site da Nosso Pet e gostaria de mais informações.",
+          generalInquiryMessage(business.shortName),
           business.whatsappRaw,
         )}
       >
         <MessageCircle />
       </a>
-      <Footer business={business} />
-    </>
+      <Footer business={business} content={content.footer} />
+    </div>
   );
 }

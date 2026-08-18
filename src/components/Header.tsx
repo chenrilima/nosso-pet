@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Logo } from "./Logo";
-import { whatsappUrl } from "@/lib/whatsapp";
+import { bookingInquiryMessage, whatsappUrl } from "@/lib/whatsapp";
 const links = [
   ["Início", "top"],
   ["Serviços", "servicos"],
@@ -12,13 +12,26 @@ const links = [
   ["Sobre", "sobre"],
   ["Localização", "localizacao"],
 ];
-export function Header({ whatsappRaw }: { whatsappRaw: string }) {
+export function Header({ businessName, whatsappRaw }: { businessName: string; whatsappRaw: string }) {
   const [open, setOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const closeMenu = (restoreFocus = false) => {
+    setOpen(false);
+    if (restoreFocus) requestAnimationFrame(() => menuButtonRef.current?.focus());
+  };
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeMenu(true);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open]);
   return (
     <header className="sticky top-0 z-50 border-b border-black/5 bg-white/95 backdrop-blur">
       <div className="container flex h-20 items-center justify-between">
         <a href="#top">
-          <Logo />
+          <Logo name={businessName} />
         </a>
         <nav className="hidden items-center gap-5 lg:flex">
           {links.map(([l, id]) => (
@@ -33,8 +46,9 @@ export function Header({ whatsappRaw }: { whatsappRaw: string }) {
           <a
             className="btn btn-primary text-sm"
             target="_blank"
+            rel="noopener noreferrer"
             href={whatsappUrl(
-              "Olá! Vim pelo site da Nosso Pet e gostaria de agendar um atendimento.",
+              bookingInquiryMessage(businessName),
               whatsappRaw,
             )}
           >
@@ -42,18 +56,21 @@ export function Header({ whatsappRaw }: { whatsappRaw: string }) {
           </a>
         </nav>
         <button
-          className="p-2 lg:hidden"
-          onClick={() => setOpen(!open)}
+          ref={menuButtonRef}
+          className="grid size-11 place-items-center rounded-xl lg:hidden"
+          onClick={() => setOpen((isOpen) => !isOpen)}
           aria-label={open ? "Fechar menu" : "Abrir menu"}
+          aria-expanded={open}
+          aria-controls="mobile-navigation"
         >
           {open ? <X /> : <Menu />}
         </button>
       </div>
       {open && (
-        <nav className="container grid gap-1 border-t py-4 lg:hidden">
+        <nav id="mobile-navigation" className="container grid gap-1 border-t py-4 lg:hidden">
           {links.map(([l, id]) => (
             <a
-              onClick={() => setOpen(false)}
+              onClick={() => closeMenu()}
               className="rounded-xl px-3 py-3 font-bold hover:bg-orange-50"
               href={`#${id}`}
               key={id}
