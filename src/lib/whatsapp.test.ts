@@ -28,6 +28,16 @@ describe("WhatsApp message templates", () => {
     expect(message).toContain("2x Rações\n• Pet: Cães");
   });
 
+  it("keeps generated templates free of four-byte emoji characters", () => {
+    const messages = [
+      bookingMessage(booking, "Nosso Pet"),
+      taxiMessage({ name: "Ana", district: "Centro", address: "06765-000", pet: "Nina", service: "Banho", date: "2026-09-03" }),
+      cartMessage([{ id: "one", categoryId: "racoes", categoryName: "Rações", quantity: 1, selections: [] }]),
+    ];
+
+    for (const message of messages) expect(message).not.toMatch(/[\u{10000}-\u{10FFFF}]/u);
+  });
+
   it("requires the configured number and URL-encodes the message", () => {
     expect(whatsappUrl("Olá & tudo bem? 🐾", "5511966442719")).toBe("https://wa.me/5511966442719?text=Ol%C3%A1%20%26%20tudo%20bem%3F%20%F0%9F%90%BE");
   });
